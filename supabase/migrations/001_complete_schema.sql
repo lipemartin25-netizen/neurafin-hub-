@@ -1,7 +1,7 @@
 -- ============================================================
 -- 🧠 NEURAFIN HUB v3.0 - DATABASE SCHEMA COMPLETO
--- INCLUI: Tudo do v1 + v2 + boletos + open finance
---         + wealth lab + academy + MEI + couples
+-- Inclui: v1 (base) + v2 (melhorias) + v3 (novos módulos)
+-- Execute este arquivo inteiro no SQL Editor do Supabase
 -- ============================================================
 
 -- Extensions
@@ -10,19 +10,490 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
 -- ============================================================
--- MANTER TODAS AS TABELAS DO v1 E v2:
--- profiles, families, accounts, categories, transactions,
--- budgets, goals, bills, ai_interactions, notifications,
--- audit_logs, user_sessions, two_factor_auth, rate_limit_log
--- + TODOS triggers, functions, RLS, indexes, storage
+-- 1. PROFILES (Perfis de usuário)
 -- ============================================================
--- (COPIAR INTEGRALMENTE do schema v1 + v2)
--- DEPOIS ADICIONAR as tabelas abaixo:
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT NOT NULL,
+  full_name TEXT,
+  avatar_url TEXT,
+  phone TEXT,
+  date_of_birth DATE,
+  currency TEXT DEFAULT 'BRL',
+  locale TEXT DEFAULT 'pt-BR',
+  timezone TEXT DEFAULT 'America/Sao_Paulo',
+  monthly_income DECIMAL(15,2),
+  financial_goal TEXT,
+  neural_score INT DEFAULT 50 CHECK (neural_score BETWEEN 0 AND 100),
+  is_mei BOOLEAN DEFAULT false,
+  plan TEXT DEFAULT 'free' CHECK (plan IN ('free', 'pro', 'family', 'mei')),
+  plan_expires_at TIMESTAMPTZ,
+  stripe_customer_id TEXT,
+  onboarding_completed BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view own profile" ON public.profiles FOR SELECT USING (id = auth.uid());
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (id = auth.uid());
+CREATE POLICY "Users can insert own profile" ON public.profiles FOR INSERT WITH CHECK (id = auth.uid());
+
+-- Trigger: auto create profile on user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, avatar_url)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'avatar_url'
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ============================================================
--- CREDIT_CARD_INVOICES (Faturas cartão de crédito)
+-- 2. FAMILIES (Grupos familiares)
 -- ============================================================
-CREATE TABLE public.credit_card_invoices (
+CREATE TABLE IF NOT EXISTS public.families (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  invite_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex'),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.families ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Family members can view" ON public.families FOR SELECT
+  USING (owner_id = auth.uid() OR id IN (
+    SELECT family_id FROM public.family_members WHERE user_id = auth.uid()
+  ));
+CREATE POLICY "Owner can manage family" ON public.families FOR ALL USING (owner_id = auth.uid());
+
+-- ============================================================
+-- 3. FAMILY_MEMBERS
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.family_members (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'member' CHECK (role IN ('owner', 'adult', 'member', 'view_only')),
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(family_id, user_id)
+);
+
+ALTER TABLE public.family_members ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Members can view" ON public.family_members FOR SELECT
+  USING (user_id = auth.uid() OR family_id IN (
+    SELECT id FROM public.families WHERE owner_id = auth.uid()
+  ));
+
+-- ============================================================
+-- 4. CATEGORIES (Categorias)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.categories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('income', 'expense', 'transfer')),
+  icon TEXT,
+  color TEXT DEFAULT '#6366f1',
+  is_default BOOLEAN DEFAULT false,
+  parent_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users see own and default categories" ON public.categories FOR SELECT
+  USING (user_id = auth.uid() OR is_default = true);
+CREATE POLICY "Users manage own categories" ON public.categories FOR ALL USING (user_id = auth.uid());
+
+-- Insert default categories
+INSERT INTO public.categories (id, name, type, icon, color, is_default) VALUES
+  (uuid_generate_v4(), 'Salário', 'income', '💼', '#10b981', true),
+  (uuid_generate_v4(), 'Freelance', 'income', '💻', '#3b82f6', true),
+  (uuid_generate_v4(), 'Investimentos', 'income', '📈', '#6366f1', true),
+  (uuid_generate_v4(), 'Outros Receitas', 'income', '💰', '#f59e0b', true),
+  (uuid_generate_v4(), 'Alimentação', 'expense', '🍽️', '#ef4444', true),
+  (uuid_generate_v4(), 'Transporte', 'expense', '🚗', '#f97316', true),
+  (uuid_generate_v4(), 'Moradia', 'expense', '🏠', '#8b5cf6', true),
+  (uuid_generate_v4(), 'Saúde', 'expense', '🏥', '#ec4899', true),
+  (uuid_generate_v4(), 'Educação', 'expense', '📚', '#14b8a6', true),
+  (uuid_generate_v4(), 'Lazer', 'expense', '🎮', '#a855f7', true),
+  (uuid_generate_v4(), 'Compras', 'expense', '🛍️', '#f43f5e', true),
+  (uuid_generate_v4(), 'Assinaturas', 'expense', '📱', '#06b6d4', true),
+  (uuid_generate_v4(), 'Delivery', 'expense', '🛵', '#fb923c', true),
+  (uuid_generate_v4(), 'Streaming', 'expense', '📺', '#7c3aed', true),
+  (uuid_generate_v4(), 'Pets', 'expense', '🐾', '#84cc16', true),
+  (uuid_generate_v4(), 'Beleza', 'expense', '💄', '#f472b6', true),
+  (uuid_generate_v4(), 'Roupas', 'expense', '👗', '#fb7185', true),
+  (uuid_generate_v4(), 'Viagem', 'expense', '✈️', '#38bdf8', true),
+  (uuid_generate_v4(), 'Impostos', 'expense', '🏛️', '#94a3b8', true),
+  (uuid_generate_v4(), 'Seguros', 'expense', '🛡️', '#64748b', true),
+  (uuid_generate_v4(), 'Outros Despesas', 'expense', '📋', '#6b7280', true),
+  (uuid_generate_v4(), 'Transferência', 'transfer', '↔️', '#a3a3a3', true)
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- 5. ACCOUNTS (Contas bancárias / carteiras)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.accounts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  family_id UUID REFERENCES public.families(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN (
+    'checking',     -- Conta Corrente
+    'savings',      -- Poupança
+    'credit_card',  -- Cartão de Crédito
+    'investment',   -- Investimento
+    'cash',         -- Dinheiro
+    'wallet',       -- Carteira Digital
+    'other'
+  )),
+  bank_name TEXT,
+  bank_code TEXT,
+  bank_logo TEXT,
+  balance DECIMAL(15,2) DEFAULT 0,
+  credit_limit DECIMAL(15,2),
+  available_credit DECIMAL(15,2),
+  closing_day INT CHECK (closing_day BETWEEN 1 AND 31),
+  due_day INT CHECK (due_day BETWEEN 1 AND 31),
+  color TEXT DEFAULT '#6366f1',
+  icon TEXT,
+  is_active BOOLEAN DEFAULT true,
+  include_in_total BOOLEAN DEFAULT true,
+  open_finance_id TEXT,
+  is_shared BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_accounts_user ON public.accounts(user_id);
+CREATE INDEX IF NOT EXISTS idx_accounts_type ON public.accounts(type);
+
+ALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own accounts" ON public.accounts FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Family members can view shared accounts" ON public.accounts FOR SELECT
+  USING (is_shared = true AND family_id IN (
+    SELECT family_id FROM public.family_members WHERE user_id = auth.uid()
+  ));
+
+-- ============================================================
+-- 6. TRANSACTIONS (Transações)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.transactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  account_id UUID NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  family_id UUID REFERENCES public.families(id) ON DELETE SET NULL,
+  amount DECIMAL(15,2) NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('income', 'expense', 'transfer')),
+  description TEXT NOT NULL,
+  notes TEXT,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  is_recurring BOOLEAN DEFAULT false,
+  recurring_frequency TEXT CHECK (recurring_frequency IN (
+    'daily', 'weekly', 'biweekly', 'monthly', 'bimonthly', 'quarterly', 'semiannual', 'annual'
+  )),
+  recurring_end_date DATE,
+  parent_transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+  tags TEXT[],
+  -- Transfer
+  transfer_account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+  -- Credit card
+  invoice_id UUID,
+  installments INT,
+  installment_number INT,
+  -- Open Finance
+  open_finance_id TEXT UNIQUE,
+  -- AI Categorization
+  ai_categorized BOOLEAN DEFAULT false,
+  ai_confidence DECIMAL(3,2),
+  ai_reviewed BOOLEAN DEFAULT false,
+  -- Attachments
+  receipt_url TEXT,
+  -- Location
+  latitude DECIMAL(10,8),
+  longitude DECIMAL(11,8),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_transactions_user ON public.transactions(user_id, date DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_account ON public.transactions(account_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_category ON public.transactions(category_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON public.transactions(date DESC);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON public.transactions(type);
+CREATE INDEX IF NOT EXISTS idx_transactions_recurring ON public.transactions(user_id) WHERE is_recurring = true;
+
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own transactions" ON public.transactions FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Family members view shared transactions" ON public.transactions FOR SELECT
+  USING (family_id IN (
+    SELECT family_id FROM public.family_members WHERE user_id = auth.uid()
+  ));
+
+-- Trigger: update account balance on transaction
+CREATE OR REPLACE FUNCTION public.update_account_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.type = 'income' THEN
+      UPDATE public.accounts SET balance = balance + NEW.amount, updated_at = NOW() WHERE id = NEW.account_id;
+    ELSIF NEW.type = 'expense' THEN
+      UPDATE public.accounts SET balance = balance - NEW.amount, updated_at = NOW() WHERE id = NEW.account_id;
+    ELSIF NEW.type = 'transfer' THEN
+      UPDATE public.accounts SET balance = balance - NEW.amount, updated_at = NOW() WHERE id = NEW.account_id;
+      IF NEW.transfer_account_id IS NOT NULL THEN
+        UPDATE public.accounts SET balance = balance + NEW.amount, updated_at = NOW() WHERE id = NEW.transfer_account_id;
+      END IF;
+    END IF;
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.type = 'income' THEN
+      UPDATE public.accounts SET balance = balance - OLD.amount, updated_at = NOW() WHERE id = OLD.account_id;
+    ELSIF OLD.type = 'expense' THEN
+      UPDATE public.accounts SET balance = balance + OLD.amount, updated_at = NOW() WHERE id = OLD.account_id;
+    ELSIF OLD.type = 'transfer' THEN
+      UPDATE public.accounts SET balance = balance + OLD.amount, updated_at = NOW() WHERE id = OLD.account_id;
+      IF OLD.transfer_account_id IS NOT NULL THEN
+        UPDATE public.accounts SET balance = balance - OLD.amount, updated_at = NOW() WHERE id = OLD.transfer_account_id;
+      END IF;
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_transaction_change ON public.transactions;
+CREATE TRIGGER on_transaction_change
+  AFTER INSERT OR DELETE ON public.transactions
+  FOR EACH ROW EXECUTE FUNCTION public.update_account_balance();
+
+-- ============================================================
+-- 7. BUDGETS (Orçamentos por categoria)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.budgets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  category_id UUID NOT NULL REFERENCES public.categories(id) ON DELETE CASCADE,
+  amount DECIMAL(15,2) NOT NULL,
+  period TEXT DEFAULT 'monthly' CHECK (period IN ('weekly', 'monthly', 'yearly')),
+  month INT CHECK (month BETWEEN 1 AND 12),
+  year INT,
+  alert_threshold DECIMAL(5,2) DEFAULT 80.00,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, category_id, period, month, year)
+);
+
+CREATE INDEX IF NOT EXISTS idx_budgets_user ON public.budgets(user_id);
+
+ALTER TABLE public.budgets ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own budgets" ON public.budgets FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- 8. GOALS (Metas financeiras)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.goals (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  family_id UUID REFERENCES public.families(id) ON DELETE SET NULL,
+  account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  target_amount DECIMAL(15,2) NOT NULL,
+  current_amount DECIMAL(15,2) DEFAULT 0,
+  target_date DATE,
+  icon TEXT DEFAULT '🎯',
+  color TEXT DEFAULT '#6366f1',
+  category TEXT DEFAULT 'savings' CHECK (category IN (
+    'emergency', 'travel', 'education', 'home', 'vehicle',
+    'retirement', 'investment', 'savings', 'other'
+  )),
+  priority INT DEFAULT 1 CHECK (priority BETWEEN 1 AND 5),
+  is_completed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMPTZ,
+  is_shared BOOLEAN DEFAULT false,
+  monthly_contribution DECIMAL(15,2),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_goals_user ON public.goals(user_id);
+
+ALTER TABLE public.goals ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own goals" ON public.goals FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Family members view shared goals" ON public.goals FOR SELECT
+  USING (is_shared = true AND family_id IN (
+    SELECT family_id FROM public.family_members WHERE user_id = auth.uid()
+  ));
+
+-- ============================================================
+-- 9. BILLS (Contas recorrentes / agendadas)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.bills (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
+  category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  amount DECIMAL(15,2) NOT NULL,
+  type TEXT DEFAULT 'expense' CHECK (type IN ('income', 'expense')),
+  frequency TEXT NOT NULL CHECK (frequency IN (
+    'daily', 'weekly', 'biweekly', 'monthly', 'bimonthly', 'quarterly', 'semiannual', 'annual', 'once'
+  )),
+  due_day INT CHECK (due_day BETWEEN 1 AND 31),
+  next_due_date DATE,
+  last_paid_date DATE,
+  is_active BOOLEAN DEFAULT true,
+  auto_pay BOOLEAN DEFAULT false,
+  reminder_days INT DEFAULT 3,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_bills_user ON public.bills(user_id);
+CREATE INDEX IF NOT EXISTS idx_bills_next_due ON public.bills(next_due_date) WHERE is_active = true;
+
+ALTER TABLE public.bills ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own bills" ON public.bills FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- 10. AI_INTERACTIONS (Histórico de interações com IA)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.ai_interactions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN (
+    'chat', 'categorize', 'insight', 'forecast', 'academy', 'wealth_analysis'
+  )),
+  model TEXT,
+  prompt TEXT,
+  response TEXT,
+  tokens_used INT,
+  cost_usd DECIMAL(10,6),
+  metadata JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_ai_user ON public.ai_interactions(user_id, created_at DESC);
+
+ALTER TABLE public.ai_interactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users view own ai interactions" ON public.ai_interactions FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "System can insert ai interactions" ON public.ai_interactions FOR INSERT WITH CHECK (user_id = auth.uid());
+
+-- ============================================================
+-- 11. NOTIFICATIONS (Notificações)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN (
+    'bill_due', 'bill_overdue', 'budget_alert', 'goal_reached',
+    'boleto_due', 'account_low', 'insight', 'sync_complete',
+    'transaction_imported', 'family_invite', 'security_alert', 'system'
+  )),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  data JSONB,
+  is_read BOOLEAN DEFAULT false,
+  read_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON public.notifications(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON public.notifications(user_id) WHERE is_read = false;
+
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own notifications" ON public.notifications FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- 12. AUDIT_LOGS (Logs de auditoria de segurança)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.audit_logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  action TEXT NOT NULL,
+  resource_type TEXT,
+  resource_id TEXT,
+  old_values JSONB,
+  new_values JSONB,
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_user ON public.audit_logs(user_id, created_at DESC);
+
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users view own audit logs" ON public.audit_logs FOR SELECT USING (user_id = auth.uid());
+
+-- ============================================================
+-- 13. USER_SESSIONS (Sessões de login)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.user_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  session_token TEXT NOT NULL UNIQUE,
+  device_info TEXT,
+  ip_address INET,
+  user_agent TEXT,
+  is_active BOOLEAN DEFAULT true,
+  last_active_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON public.user_sessions(user_id) WHERE is_active = true;
+
+ALTER TABLE public.user_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own sessions" ON public.user_sessions FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- 14. TWO_FACTOR_AUTH (2FA)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.two_factor_auth (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL UNIQUE REFERENCES public.profiles(id) ON DELETE CASCADE,
+  secret TEXT NOT NULL,
+  is_enabled BOOLEAN DEFAULT false,
+  backup_codes TEXT[],
+  enabled_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.two_factor_auth ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users manage own 2fa" ON public.two_factor_auth FOR ALL USING (user_id = auth.uid());
+
+-- ============================================================
+-- 15. RATE_LIMIT_LOG (Rate limiting)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.rate_limit_log (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  identifier TEXT NOT NULL,
+  action TEXT NOT NULL,
+  count INT DEFAULT 1,
+  window_start TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_rate_limit ON public.rate_limit_log(identifier, action, window_start);
+
+-- ============================================================
+-- V3: CREDIT_CARD_INVOICES (Faturas cartão de crédito)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS public.credit_card_invoices (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   account_id UUID NOT NULL REFERENCES public.accounts(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -33,9 +504,7 @@ CREATE TABLE public.credit_card_invoices (
   due_date DATE NOT NULL,
   total_amount DECIMAL(15,2) DEFAULT 0,
   minimum_payment DECIMAL(15,2),
-  status TEXT DEFAULT 'open' CHECK (status IN (
-    'open', 'closed', 'paid', 'partial', 'overdue'
-  )),
+  status TEXT DEFAULT 'open' CHECK (status IN ('open', 'closed', 'paid', 'partial', 'overdue')),
   paid_amount DECIMAL(15,2) DEFAULT 0,
   paid_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -43,148 +512,98 @@ CREATE TABLE public.credit_card_invoices (
   UNIQUE(account_id, year, month)
 );
 
-CREATE INDEX idx_invoices_account ON public.credit_card_invoices(account_id, year DESC, month DESC);
-CREATE INDEX idx_invoices_status ON public.credit_card_invoices(status) WHERE status != 'paid';
+CREATE INDEX IF NOT EXISTS idx_invoices_account ON public.credit_card_invoices(account_id, year DESC, month DESC);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON public.credit_card_invoices(status) WHERE status != 'paid';
 
 ALTER TABLE public.credit_card_invoices ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own invoices"
-  ON public.credit_card_invoices FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own invoices" ON public.credit_card_invoices FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- BOLETOS (DDA - Débito Direto Autorizado)
+-- V3: BOLETOS (DDA - Débito Direto Autorizado)
 -- ============================================================
-CREATE TABLE public.boletos (
+CREATE TABLE IF NOT EXISTS public.boletos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   account_id UUID REFERENCES public.accounts(id) ON DELETE SET NULL,
-
-  -- Dados do boleto
-  barcode TEXT,                          -- Código de barras (44 dígitos)
-  digitable_line TEXT,                   -- Linha digitável
+  barcode TEXT,
+  digitable_line TEXT,
   amount DECIMAL(15,2) NOT NULL,
   discount_amount DECIMAL(15,2),
   fine_amount DECIMAL(15,2),
   interest_amount DECIMAL(15,2),
-  final_amount DECIMAL(15,2),            -- Valor final (com multa/desconto)
-
-  -- Identificação
-  beneficiary_name TEXT,                 -- Quem recebe (cedente)
-  beneficiary_document TEXT,             -- CNPJ/CPF cedente
-  payer_name TEXT,                       -- Quem paga (sacado)
-  payer_document TEXT,                   -- CNPJ/CPF sacado
-
-  -- Datas
-  issue_date DATE,                       -- Data emissão
-  due_date DATE NOT NULL,                -- Data vencimento
-  payment_date DATE,                     -- Data pagamento (quando pago)
-
-  -- Classificação
+  final_amount DECIMAL(15,2),
+  beneficiary_name TEXT,
+  beneficiary_document TEXT,
+  payer_name TEXT,
+  payer_document TEXT,
+  issue_date DATE,
+  due_date DATE NOT NULL,
+  payment_date DATE,
   category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
   type TEXT DEFAULT 'utility' CHECK (type IN (
-    'utility',          -- Concessionária (água, luz, gás)
-    'tax',              -- Imposto (IPTU, IPVA, DAS)
-    'bank_slip',        -- Boleto bancário
-    'insurance',        -- Seguro
-    'rent',             -- Aluguel
-    'condominium',      -- Condomínio
-    'education',        -- Escola/faculdade
-    'health',           -- Plano saúde
-    'subscription',     -- Assinatura
-    'other'
+    'utility', 'tax', 'bank_slip', 'insurance', 'rent',
+    'condominium', 'education', 'health', 'subscription', 'other'
   )),
-
-  -- DDA
-  dda_detected BOOLEAN DEFAULT false,    -- Detectado via DDA
-  dda_source TEXT,                       -- Banco que enviou DDA
-
-  -- Status
+  dda_detected BOOLEAN DEFAULT false,
+  dda_source TEXT,
   status TEXT DEFAULT 'pending' CHECK (status IN (
-    'pending',          -- Pendente
-    'paid',             -- Pago
-    'overdue',          -- Vencido
-    'cancelled',        -- Cancelado
-    'scheduled'         -- Agendado
+    'pending', 'paid', 'overdue', 'cancelled', 'scheduled'
   )),
-
-  -- Recorrência
   is_recurring BOOLEAN DEFAULT false,
   bill_id UUID REFERENCES public.bills(id) ON DELETE SET NULL,
-
-  -- Meta
   notes TEXT,
-  open_finance_id TEXT,                  -- ID no Open Finance
+  open_finance_id TEXT,
   ai_categorized BOOLEAN DEFAULT false,
   ai_confidence DECIMAL(3,2),
-
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_boletos_user ON public.boletos(user_id, due_date DESC);
-CREATE INDEX idx_boletos_status ON public.boletos(status) WHERE status IN ('pending', 'overdue');
-CREATE INDEX idx_boletos_barcode ON public.boletos(barcode) WHERE barcode IS NOT NULL;
-CREATE INDEX idx_boletos_due ON public.boletos(due_date) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS idx_boletos_user ON public.boletos(user_id, due_date DESC);
+CREATE INDEX IF NOT EXISTS idx_boletos_status ON public.boletos(status) WHERE status IN ('pending', 'overdue');
+CREATE INDEX IF NOT EXISTS idx_boletos_barcode ON public.boletos(barcode) WHERE barcode IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_boletos_due ON public.boletos(due_date) WHERE status = 'pending';
 
 ALTER TABLE public.boletos ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own boletos"
-  ON public.boletos FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own boletos" ON public.boletos FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- OPEN_FINANCE_CONNECTIONS (Conexões bancárias)
+-- V3: OPEN_FINANCE_CONNECTIONS
 -- ============================================================
-CREATE TABLE public.open_finance_connections (
+CREATE TABLE IF NOT EXISTS public.open_finance_connections (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  institution_id TEXT NOT NULL,          -- ID da instituição
+  institution_id TEXT NOT NULL,
   institution_name TEXT NOT NULL,
   institution_logo TEXT,
-  consent_id TEXT NOT NULL UNIQUE,       -- ID consentimento (encrypted)
-  consent_status TEXT DEFAULT 'active' CHECK (consent_status IN (
-    'pending', 'active', 'expired', 'revoked'
-  )),
+  consent_id TEXT NOT NULL UNIQUE,
+  consent_status TEXT DEFAULT 'active' CHECK (consent_status IN ('pending', 'active', 'expired', 'revoked')),
   consent_expires_at TIMESTAMPTZ,
-  permissions TEXT[] DEFAULT '{         -- Permissões concedidas
-    ACCOUNTS_READ,
-    ACCOUNTS_BALANCES_READ,
-    TRANSACTIONS_READ,
-    CREDIT_CARDS_READ,
-    CREDIT_CARDS_BILLS_READ,
-    BOLETOS_READ
-  }',
+  permissions TEXT[],
   last_sync_at TIMESTAMPTZ,
-  sync_status TEXT DEFAULT 'idle' CHECK (sync_status IN (
-    'idle', 'syncing', 'success', 'error'
-  )),
+  sync_status TEXT DEFAULT 'idle' CHECK (sync_status IN ('idle', 'syncing', 'success', 'error')),
   sync_error TEXT,
   total_synced_transactions INT DEFAULT 0,
-  accounts_linked UUID[] DEFAULT '{}',   -- IDs das contas locais vinculadas
+  accounts_linked UUID[],
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_of_connections_user ON public.open_finance_connections(user_id);
-CREATE INDEX idx_of_connections_status ON public.open_finance_connections(consent_status);
+CREATE INDEX IF NOT EXISTS idx_of_connections_user ON public.open_finance_connections(user_id);
+CREATE INDEX IF NOT EXISTS idx_of_connections_status ON public.open_finance_connections(consent_status);
 
 ALTER TABLE public.open_finance_connections ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own connections"
-  ON public.open_finance_connections FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own connections" ON public.open_finance_connections FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- OPEN_FINANCE_SYNC_LOG (Log de sincronizações)
+-- V3: OPEN_FINANCE_SYNC_LOG
 -- ============================================================
-CREATE TABLE public.open_finance_sync_log (
+CREATE TABLE IF NOT EXISTS public.open_finance_sync_log (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   connection_id UUID NOT NULL REFERENCES public.open_finance_connections(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  sync_type TEXT NOT NULL CHECK (sync_type IN (
-    'initial_90_days',    -- Primeira sync (90 dias)
-    'incremental',        -- Sync diária
-    'manual',             -- Forçada pelo user
-    'full_refresh'        -- Re-sync completa
-  )),
-  status TEXT DEFAULT 'running' CHECK (status IN (
-    'running', 'completed', 'partial', 'failed'
-  )),
+  sync_type TEXT NOT NULL CHECK (sync_type IN ('initial_90_days', 'incremental', 'manual', 'full_refresh')),
+  status TEXT DEFAULT 'running' CHECK (status IN ('running', 'completed', 'partial', 'failed')),
   transactions_found INT DEFAULT 0,
   transactions_imported INT DEFAULT 0,
   transactions_categorized INT DEFAULT 0,
@@ -200,13 +619,12 @@ CREATE TABLE public.open_finance_sync_log (
 );
 
 ALTER TABLE public.open_finance_sync_log ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users view own sync logs"
-  ON public.open_finance_sync_log FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Users view own sync logs" ON public.open_finance_sync_log FOR SELECT USING (user_id = auth.uid());
 
 -- ============================================================
--- WEALTH_LAB_SIMULATIONS (Simulações salvas)
+-- V3: WEALTH_LAB_SIMULATIONS
 -- ============================================================
-CREATE TABLE public.wealth_lab_simulations (
+CREATE TABLE IF NOT EXISTS public.wealth_lab_simulations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   type TEXT NOT NULL CHECK (type IN (
@@ -214,32 +632,29 @@ CREATE TABLE public.wealth_lab_simulations (
     'tax_planning', 'objective', 'mei_projection'
   )),
   name TEXT NOT NULL,
-  inputs JSONB NOT NULL,                 -- Parâmetros da simulação
-  results JSONB NOT NULL,                -- Resultados calculados
+  inputs JSONB NOT NULL,
+  results JSONB NOT NULL,
   is_favorite BOOLEAN DEFAULT false,
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_simulations_user ON public.wealth_lab_simulations(user_id, type);
+CREATE INDEX IF NOT EXISTS idx_simulations_user ON public.wealth_lab_simulations(user_id, type);
 
 ALTER TABLE public.wealth_lab_simulations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own simulations"
-  ON public.wealth_lab_simulations FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own simulations" ON public.wealth_lab_simulations FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- ACADEMY_PROGRESS (Progresso academia financeira)
+-- V3: ACADEMY_PROGRESS
 -- ============================================================
-CREATE TABLE public.academy_progress (
+CREATE TABLE IF NOT EXISTS public.academy_progress (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  module_id TEXT NOT NULL,               -- ID do módulo
-  lesson_id TEXT NOT NULL,               -- ID da aula
-  status TEXT DEFAULT 'not_started' CHECK (status IN (
-    'not_started', 'in_progress', 'completed'
-  )),
-  quiz_score DECIMAL(5,2),               -- Nota do quiz (0-100)
+  module_id TEXT NOT NULL,
+  lesson_id TEXT NOT NULL,
+  status TEXT DEFAULT 'not_started' CHECK (status IN ('not_started', 'in_progress', 'completed')),
+  quiz_score DECIMAL(5,2),
   quiz_attempts INT DEFAULT 0,
   time_spent_seconds INT DEFAULT 0,
   completed_at TIMESTAMPTZ,
@@ -248,28 +663,23 @@ CREATE TABLE public.academy_progress (
   UNIQUE(user_id, module_id, lesson_id)
 );
 
-CREATE INDEX idx_academy_user ON public.academy_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_academy_user ON public.academy_progress(user_id);
 
 ALTER TABLE public.academy_progress ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own progress"
-  ON public.academy_progress FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own progress" ON public.academy_progress FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- COUPLES_SHARED (Gastos compartilhados casal)
+-- V3: COUPLES_SHARED
 -- ============================================================
-CREATE TABLE public.couples_shared (
+CREATE TABLE IF NOT EXISTS public.couples_shared (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   family_id UUID NOT NULL REFERENCES public.families(id) ON DELETE CASCADE,
   partner_1_id UUID NOT NULL REFERENCES public.profiles(id),
   partner_2_id UUID NOT NULL REFERENCES public.profiles(id),
-  split_type TEXT DEFAULT 'equal' CHECK (split_type IN (
-    'equal',              -- 50/50
-    'proportional',       -- Proporcional à renda
-    'custom'              -- Personalizado por categoria
-  )),
+  split_type TEXT DEFAULT 'equal' CHECK (split_type IN ('equal', 'proportional', 'custom')),
   partner_1_income DECIMAL(15,2),
   partner_2_income DECIMAL(15,2),
-  custom_splits JSONB,                   -- { "category_id": { "p1": 60, "p2": 40 } }
+  custom_splits JSONB,
   settlement_day INT DEFAULT 1 CHECK (settlement_day BETWEEN 1 AND 28),
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -277,14 +687,13 @@ CREATE TABLE public.couples_shared (
 );
 
 ALTER TABLE public.couples_shared ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Partners can manage"
-  ON public.couples_shared FOR ALL
+CREATE POLICY "Partners can manage" ON public.couples_shared FOR ALL
   USING (partner_1_id = auth.uid() OR partner_2_id = auth.uid());
 
 -- ============================================================
--- COUPLES_EXPENSES (Despesas do casal)
+-- V3: COUPLES_EXPENSES
 -- ============================================================
-CREATE TABLE public.couples_expenses (
+CREATE TABLE IF NOT EXISTS public.couples_expenses (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   couple_id UUID NOT NULL REFERENCES public.couples_shared(id) ON DELETE CASCADE,
   transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
@@ -292,8 +701,8 @@ CREATE TABLE public.couples_expenses (
   amount DECIMAL(15,2) NOT NULL,
   description TEXT NOT NULL,
   category_id UUID REFERENCES public.categories(id),
-  split_p1 DECIMAL(5,2) DEFAULT 50.00,  -- % parceiro 1
-  split_p2 DECIMAL(5,2) DEFAULT 50.00,  -- % parceiro 2
+  split_p1 DECIMAL(5,2) DEFAULT 50.00,
+  split_p2 DECIMAL(5,2) DEFAULT 50.00,
   is_settled BOOLEAN DEFAULT false,
   settled_at TIMESTAMPTZ,
   date DATE DEFAULT CURRENT_DATE,
@@ -301,39 +710,37 @@ CREATE TABLE public.couples_expenses (
 );
 
 ALTER TABLE public.couples_expenses ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Partners can manage expenses"
-  ON public.couples_expenses FOR ALL
+CREATE POLICY "Partners can manage expenses" ON public.couples_expenses FOR ALL
   USING (couple_id IN (
     SELECT id FROM public.couples_shared
     WHERE partner_1_id = auth.uid() OR partner_2_id = auth.uid()
   ));
 
 -- ============================================================
--- MEI_DATA (Dados MEI do usuário)
+-- V3: MEI_DATA
 -- ============================================================
-CREATE TABLE public.mei_data (
+CREATE TABLE IF NOT EXISTS public.mei_data (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES public.profiles(id) ON DELETE CASCADE,
   cnpj TEXT,
   company_name TEXT,
-  activity_code TEXT,                    -- CNAE
+  activity_code TEXT,
   activity_description TEXT,
   registration_date DATE,
   annual_limit DECIMAL(15,2) DEFAULT 81000.00,
-  das_amount DECIMAL(10,2),              -- Valor DAS mensal
+  das_amount DECIMAL(10,2),
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.mei_data ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own mei data"
-  ON public.mei_data FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own mei data" ON public.mei_data FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- MEI_REVENUE (Faturamento mensal MEI)
+-- V3: MEI_REVENUE
 -- ============================================================
-CREATE TABLE public.mei_revenue (
+CREATE TABLE IF NOT EXISTS public.mei_revenue (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
   mei_id UUID NOT NULL REFERENCES public.mei_data(id) ON DELETE CASCADE,
@@ -350,14 +757,13 @@ CREATE TABLE public.mei_revenue (
   UNIQUE(user_id, year, month)
 );
 
-CREATE INDEX idx_mei_revenue_user ON public.mei_revenue(user_id, year DESC, month DESC);
+CREATE INDEX IF NOT EXISTS idx_mei_revenue_user ON public.mei_revenue(user_id, year DESC, month DESC);
 
 ALTER TABLE public.mei_revenue ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Users manage own revenue"
-  ON public.mei_revenue FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users manage own revenue" ON public.mei_revenue FOR ALL USING (user_id = auth.uid());
 
 -- ============================================================
--- ADDITIONAL FUNCTIONS
+-- FUNCTIONS
 -- ============================================================
 
 -- Calculate couple balance
@@ -366,54 +772,34 @@ RETURNS TABLE(partner_id UUID, total_paid DECIMAL, should_pay DECIMAL, balance D
 BEGIN
   RETURN QUERY
   WITH expenses AS (
-    SELECT
-      ce.paid_by,
-      ce.amount,
-      ce.split_p1,
-      ce.split_p2,
-      cs.partner_1_id,
-      cs.partner_2_id
+    SELECT ce.paid_by, ce.amount, ce.split_p1, ce.split_p2,
+           cs.partner_1_id, cs.partner_2_id
     FROM public.couples_expenses ce
     JOIN public.couples_shared cs ON cs.id = ce.couple_id
-    WHERE ce.couple_id = p_couple_id
-      AND ce.is_settled = false
+    WHERE ce.couple_id = p_couple_id AND ce.is_settled = false
   ),
   partner_totals AS (
-    SELECT
-      partner_1_id as pid,
-      SUM(CASE WHEN paid_by = partner_1_id THEN amount ELSE 0 END) as paid,
-      SUM(amount * split_p1 / 100) as should
-    FROM expenses
-    GROUP BY partner_1_id
+    SELECT partner_1_id as pid,
+           SUM(CASE WHEN paid_by = partner_1_id THEN amount ELSE 0 END) as paid,
+           SUM(amount * split_p1 / 100) as should
+    FROM expenses GROUP BY partner_1_id
     UNION ALL
-    SELECT
-      partner_2_id as pid,
-      SUM(CASE WHEN paid_by = partner_2_id THEN amount ELSE 0 END) as paid,
-      SUM(amount * split_p2 / 100) as should
-    FROM expenses
-    GROUP BY partner_2_id
+    SELECT partner_2_id as pid,
+           SUM(CASE WHEN paid_by = partner_2_id THEN amount ELSE 0 END) as paid,
+           SUM(amount * split_p2 / 100) as should
+    FROM expenses GROUP BY partner_2_id
   )
-  SELECT
-    pid as partner_id,
-    paid as total_paid,
-    should as should_pay,
-    (paid - should) as balance
-  FROM partner_totals;
+  SELECT pid, paid, should, (paid - should) as balance FROM partner_totals;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Calculate MEI annual revenue
-CREATE OR REPLACE FUNCTION public.calculate_mei_annual_revenue(
-  p_user_id UUID,
-  p_year INT
-)
+CREATE OR REPLACE FUNCTION public.calculate_mei_annual_revenue(p_user_id UUID, p_year INT)
 RETURNS DECIMAL AS $$
 BEGIN
   RETURN COALESCE(
-    (SELECT SUM(gross_revenue)
-     FROM public.mei_revenue
-     WHERE user_id = p_user_id AND year = p_year),
-    0
+    (SELECT SUM(gross_revenue) FROM public.mei_revenue
+     WHERE user_id = p_user_id AND year = p_year), 0
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -424,13 +810,82 @@ RETURNS VOID AS $$
 BEGIN
   UPDATE public.boletos
   SET status = 'overdue', updated_at = NOW()
-  WHERE status = 'pending'
-    AND due_date < CURRENT_DATE;
+  WHERE status = 'pending' AND due_date < CURRENT_DATE;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Realtime for new tables
-ALTER PUBLICATION supabase_realtime ADD TABLE public.boletos;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.credit_card_invoices;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.couples_expenses;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.open_finance_connections;
+-- Updated_at trigger function
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply updated_at triggers
+DO $$
+DECLARE
+  t TEXT;
+BEGIN
+  FOREACH t IN ARRAY ARRAY[
+    'profiles', 'families', 'accounts', 'transactions', 'budgets',
+    'goals', 'bills', 'credit_card_invoices', 'boletos',
+    'open_finance_connections', 'wealth_lab_simulations',
+    'academy_progress', 'couples_shared', 'mei_data', 'mei_revenue'
+  ]
+  LOOP
+    EXECUTE format('
+      DROP TRIGGER IF EXISTS set_updated_at ON public.%I;
+      CREATE TRIGGER set_updated_at BEFORE UPDATE ON public.%I
+      FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+    ', t, t);
+  END LOOP;
+END;
+$$;
+
+-- ============================================================
+-- REALTIME
+-- ============================================================
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.transactions;
+  EXCEPTION WHEN others THEN NULL; END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+  EXCEPTION WHEN others THEN NULL; END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.boletos;
+  EXCEPTION WHEN others THEN NULL; END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.credit_card_invoices;
+  EXCEPTION WHEN others THEN NULL; END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.couples_expenses;
+  EXCEPTION WHEN others THEN NULL; END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.open_finance_connections;
+  EXCEPTION WHEN others THEN NULL; END;
+END;
+$$;
+
+-- ============================================================
+-- STORAGE BUCKETS
+-- ============================================================
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES
+  ('avatars', 'avatars', true, 5242880, ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  ('receipts', 'receipts', false, 10485760, ARRAY['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
+  ('exports', 'exports', false, 52428800, ARRAY['application/pdf', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policies
+CREATE POLICY "Avatar images are publicly accessible" ON storage.objects FOR SELECT USING (bucket_id = 'avatars');
+CREATE POLICY "Users upload own avatar" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users access own receipts" ON storage.objects FOR ALL USING (bucket_id = 'receipts' AND auth.uid()::text = (storage.foldername(name))[1]);
+CREATE POLICY "Users access own exports" ON storage.objects FOR ALL USING (bucket_id = 'exports' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- ============================================================
+-- FIM DO SCHEMA - NEURAFIN HUB v3.0
+-- ============================================================
