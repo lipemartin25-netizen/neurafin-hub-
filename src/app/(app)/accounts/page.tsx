@@ -39,51 +39,51 @@ export default async function AccountsPage() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 animate-fade-in pb-10">
-            <div className="flex items-center justify-between">
+        <div className="max-w-[1000px] mx-auto space-y-8 animate-fade-in pb-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Minhas Contas</h1>
-                    <p className="text-muted-foreground text-sm mt-0.5">Visão consolidada do seu patrimônio físico e contas</p>
+                    <h1 className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>Minhas Contas</h1>
+                    <p className="text-[#8e9bb0] text-sm mt-1 font-medium tracking-wide">Visão consolidada do seu patrimônio físico e contas</p>
                 </div>
                 <Link href="/accounts/new">
-                    <button className="btn-neural flex items-center gap-2">
+                    <button className="btn-neural flex items-center gap-2 shadow-[0_0_20px_rgba(0,242,96,0.3)]">
                         <Plus className="w-4 h-4" /> Conta ou Cartão
                     </button>
                 </Link>
             </div>
 
-            <div className="glass-card p-6 border-b-4 border-b-primary flex items-center justify-between">
+            <div className="glass-card-hover p-8 border-b-4 border-b-[#00F260] flex items-center justify-between shadow-[0_8px_32px_rgba(0,242,96,0.05)] bg-gradient-to-r from-[#03050C] to-[#011409]">
                 <div>
-                    <p className="text-xs uppercase tracking-wider font-medium text-muted-foreground">Saldo Consolidado (Total em Contas)</p>
-                    <p className="text-3xl font-bold mt-1 text-foreground">{formatCurrency(totalBalance)}</p>
+                    <p className="text-[11px] uppercase tracking-[0.2em] font-bold text-[#8e9bb0] mb-2">Saldo Consolidado (Total em Contas)</p>
+                    <p className="text-4xl font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>{formatCurrency(totalBalance)}</p>
                 </div>
             </div>
 
-            <div className="space-y-8 mt-6">
+            <div className="space-y-10 mt-8">
                 {/* Checking & Cash */}
                 {groups.checking.length > 0 && (
-                    <section className="space-y-4">
-                        <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <Wallet className="w-5 h-5 text-indigo-400" /> Corrente & Carteira
+                    <section className="space-y-5">
+                        <h2 className="text-xl font-semibold flex items-center gap-3 text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                            <Wallet className="w-5 h-5 text-[#00F260]" /> Corrente & Carteira
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {groups.checking.map((acc) => {
                                 const Icon = TypeIcon[acc.type] ?? Wallet
                                 return (
-                                    <div key={acc.id} className="glass-card-hover p-5 relative overflow-hidden group cursor-pointer border border-white/5">
+                                    <div key={acc.id} className="glass-card p-5 relative overflow-hidden group cursor-pointer border border-transparent hover:border-[#ffffff10] hover:bg-[#ffffff05] transition-all">
                                         <div className="flex items-center justify-between mb-4">
-                                            <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10" style={{ backgroundColor: `${acc.color}20` }}>
-                                                <Icon className="w-5 h-5" style={{ color: acc.color }} />
+                                            <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner" style={{ backgroundColor: `${acc.color}15`, border: `1px solid ${acc.color}30` }}>
+                                                <Icon className="w-6 h-6" style={{ color: acc.color }} />
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <ChevronRight className="w-5 h-5 text-[#8e9bb0] opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </div>
-                                        <p className="text-sm font-medium text-muted-foreground">{acc.name}</p>
-                                        <p className={`text-xl font-bold mt-1 ${acc.balance < 0 ? 'text-red-400' : 'text-foreground'}`}>
+                                        <p className="text-[13px] font-semibold text-[#8e9bb0] truncate group-hover:text-white transition-colors">{acc.name}</p>
+                                        <p className={`text-2xl font-bold mt-1 tracking-tight ${acc.balance < 0 ? 'text-red-400' : 'text-white'}`} style={{ fontFamily: 'Outfit' }}>
                                             {formatCurrency(acc.balance)}
                                         </p>
                                         {!acc.include_in_total && (
-                                            <span className="absolute top-3 right-3 text-[10px] bg-red-500/10 text-red-400 px-2 flex items-center h-4 rounded-full">
-                                                Ignorado do saldo
+                                            <span className="absolute top-4 right-4 text-[10px] bg-red-500/10 border border-red-500/20 text-red-400 px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase">
+                                                Ignorado
                                             </span>
                                         )}
                                     </div>
@@ -95,43 +95,44 @@ export default async function AccountsPage() {
 
                 {/* Credit Cards */}
                 {groups.creditCards.length > 0 && (
-                    <section className="space-y-4">
-                        <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <CreditCard className="w-5 h-5 text-amber-400" /> Cartões de Crédito
+                    <section className="space-y-5">
+                        <h2 className="text-xl font-semibold flex items-center gap-3 text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                            <CreditCard className="w-5 h-5 text-[#F5A623]" /> Cartões de Crédito
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {groups.creditCards.map((acc) => {
                                 const pct = acc.credit_limit ? (acc.balance / acc.credit_limit) * 100 : 0
                                 return (
-                                    <div key={acc.id} className="account-card-3d p-6 relative overflow-hidden rounded-2xl cursor-pointer">
-                                        <div className="absolute inset-0 opacity-80" style={{ background: `linear-gradient(135deg, ${acc.color}, #1f2937)` }} />
+                                    <div key={acc.id} className="p-6 relative overflow-hidden rounded-2xl cursor-pointer shadow-[0_8px_32px_rgba(0,0,0,0.5)] border border-[#ffffff10] group hover:-translate-y-1 transition-transform">
+                                        <div className="absolute inset-0 opacity-90 transition-opacity group-hover:opacity-100" style={{ background: `linear-gradient(135deg, ${acc.color}80, #03050C)` }} />
+                                        <div className="absolute inset-0 bg-[#03050C]/40 backdrop-blur-[2px]" />
                                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl pointer-events-none" />
 
                                         <div className="relative z-10">
                                             <div className="flex justify-between items-start mb-6">
-                                                <p className="font-semibold tracking-widest text-white">{acc.name.toUpperCase()}</p>
-                                                <CreditCard className="w-6 h-6 text-white/50" />
+                                                <p className="font-bold tracking-[0.2em] text-white/90 text-sm">{acc.name.toUpperCase()}</p>
+                                                <CreditCard className="w-6 h-6 text-white/40" />
                                             </div>
                                             <div className="mb-2">
-                                                <p className="text-[10px] uppercase text-white/70 tracking-wider">Fatura Atual</p>
-                                                <p className="text-2xl font-bold text-white">{formatCurrency(acc.balance)}</p>
+                                                <p className="text-[10px] uppercase text-white/50 font-bold tracking-[0.15em] mb-1">Fatura Atual</p>
+                                                <p className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>{formatCurrency(acc.balance)}</p>
                                             </div>
                                             {acc.credit_limit && (
-                                                <div className="mt-4">
-                                                    <div className="flex justify-between text-xs text-white/70 mb-1">
+                                                <div className="mt-5">
+                                                    <div className="flex justify-between text-[11px] text-white/60 mb-2 font-medium">
                                                         <span>Limite Usado: {pct.toFixed(0)}%</span>
                                                         <span>Total: {formatCurrency(acc.credit_limit)}</span>
                                                     </div>
-                                                    <div className="h-1.5 w-full bg-black/30 rounded-full overflow-hidden">
-                                                        <div className="h-full bg-white transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%` }} />
+                                                    <div className="h-1.5 w-full bg-black/50 rounded-full overflow-hidden border border-white/5">
+                                                        <div className="h-full bg-gradient-to-r from-white/50 to-white transition-all duration-500 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style={{ width: `${Math.min(pct, 100)}%` }} />
                                                     </div>
                                                 </div>
                                             )}
 
-                                            <div className="flex items-center gap-4 mt-4 select-none pointer-events-none text-xs text-white/50">
+                                            <div className="flex items-center gap-4 mt-5 select-none pointer-events-none text-[11px] text-white/40 uppercase font-bold tracking-wider">
                                                 <div>
-                                                    <span>Venc</span>
-                                                    <span className="text-white ml-2">{String(acc.due_day).padStart(2, '0')}/mês</span>
+                                                    <span>Vencimento</span>
+                                                    <span className="text-white ml-2 text-sm">{String(acc.due_day).padStart(2, '0')}/mês</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -144,19 +145,19 @@ export default async function AccountsPage() {
 
                 {/* Investments / Savings */}
                 {groups.investments.length > 0 && (
-                    <section className="space-y-4">
-                        <h2 className="text-lg font-semibold flex items-center gap-2">
-                            <Landmark className="w-5 h-5 text-emerald-400" /> Investimentos
+                    <section className="space-y-5">
+                        <h2 className="text-xl font-semibold flex items-center gap-3 text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                            <Landmark className="w-5 h-5 text-[#00F260]" /> Investimentos & Reservas
                         </h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {groups.investments.map((acc) => (
-                                <div key={acc.id} className="glass-card-hover p-4 relative overflow-hidden group cursor-pointer flex items-center gap-4 border border-white/5">
-                                    <div className="w-12 h-12 rounded-xl flex items-center justify-center border border-white/10 bg-emerald-500/10 shrink-0">
-                                        <Landmark className="w-6 h-6 text-emerald-400" />
+                                <div key={acc.id} className="glass-card-hover p-5 relative overflow-hidden group cursor-pointer flex items-center gap-5 border border-transparent hover:border-[#00F260]/30 transition-all">
+                                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center border border-[#00F260]/20 bg-[#00F260]/10 shrink-0 shadow-inner group-hover:scale-110 transition-transform">
+                                        <Landmark className="w-7 h-7 text-[#00F260]" />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-muted-foreground">{acc.name}</p>
-                                        <p className="text-lg font-bold text-foreground">
+                                        <p className="text-[12px] font-bold uppercase tracking-wider text-[#8e9bb0] mb-0.5">{acc.name}</p>
+                                        <p className="text-2xl font-bold text-white tracking-tight group-hover:text-[#00F260] transition-colors" style={{ fontFamily: 'Outfit' }}>
                                             {formatCurrency(acc.balance)}
                                         </p>
                                     </div>
@@ -167,12 +168,14 @@ export default async function AccountsPage() {
                 )}
 
                 {Object.values(groups).every(g => g.length === 0) && (
-                    <div className="glass-card p-12 text-center mt-4 border-dashed border border-white/10">
-                        <Wallet className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-                        <h3 className="text-lg font-bold mb-1">Nenhuma conta encontrada</h3>
-                        <p className="text-sm text-muted-foreground mb-4">Que tal registrar sua conta corrente ou cartão de crédito para acompanhar seus gastos?</p>
+                    <div className="glass-card p-16 text-center mt-6 border-dashed border border-[#ffffff10] rounded-3xl">
+                        <div className="w-20 h-20 rounded-3xl bg-[#ffffff05] border border-[#ffffff10] flex items-center justify-center mx-auto mb-6 shadow-inner">
+                            <Wallet className="w-8 h-8 text-[#8e9bb0]" />
+                        </div>
+                        <h3 className="text-xl font-bold text-white tracking-tight mb-2" style={{ fontFamily: 'Outfit' }}>Bófre Vazio</h3>
+                        <p className="text-[#8e9bb0] text-[15px] mb-8 max-w-sm mx-auto">Adicione suas constas correntes, cartões de crédito e faturas para iniciar a gestão inteligente.</p>
                         <Link href="/accounts/new">
-                            <button className="btn-neural">Adicionar Minha Primeira Conta</button>
+                            <button className="btn-neural px-8 py-3.5 text-sm">Vincular Conta</button>
                         </Link>
                     </div>
                 )}

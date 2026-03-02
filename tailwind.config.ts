@@ -10,47 +10,51 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                background: 'hsl(var(--background))',
-                foreground: 'hsl(var(--foreground))',
+                background: '#03050C', // Very dark blue/black (MetaFin reference)
+                foreground: '#ffffff',
                 card: {
-                    DEFAULT: 'hsl(var(--card))',
-                    foreground: 'hsl(var(--card-foreground))',
+                    DEFAULT: 'rgba(255, 255, 255, 0.02)',
+                    foreground: '#ffffff',
                 },
                 primary: {
-                    DEFAULT: 'hsl(var(--primary))',
-                    foreground: 'hsl(var(--primary-foreground))',
+                    DEFAULT: '#00F260', // Neon Emerald
+                    foreground: '#000000',
                 },
                 secondary: {
-                    DEFAULT: 'hsl(var(--secondary))',
-                    foreground: 'hsl(var(--secondary-foreground))',
+                    DEFAULT: 'rgba(255, 255, 255, 0.05)',
+                    foreground: '#a1a1aa',
                 },
                 muted: {
-                    DEFAULT: 'hsl(var(--muted))',
-                    foreground: 'hsl(var(--muted-foreground))',
+                    DEFAULT: 'rgba(255, 255, 255, 0.1)',
+                    foreground: '#71717a',
                 },
                 accent: {
-                    DEFAULT: 'hsl(var(--accent))',
-                    foreground: 'hsl(var(--accent-foreground))',
+                    DEFAULT: '#F5A623', // Gold/Amber (AurumFinance reference)
+                    foreground: '#000000',
                 },
                 destructive: {
-                    DEFAULT: 'hsl(var(--destructive))',
-                    foreground: 'hsl(var(--destructive-foreground))',
+                    DEFAULT: '#EF4444',
+                    foreground: '#ffffff',
                 },
-                border: 'hsl(var(--border))',
-                input: 'hsl(var(--input))',
-                ring: 'hsl(var(--ring))',
+                border: 'rgba(255, 255, 255, 0.05)',
+                input: 'rgba(255, 255, 255, 0.05)',
+                ring: '#00F260',
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
+                sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                heading: ['Outfit', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace'],
             },
             borderRadius: {
-                lg: 'var(--radius)',
-                md: 'calc(var(--radius) - 2px)',
-                sm: 'calc(var(--radius) - 4px)',
+                lg: '1rem',
+                md: '0.75rem',
+                sm: '0.5rem',
             },
         },
     },
-    plugins: [],
+    plugins: [
+        require('tailwind-scrollbar'),
+    ],
 }
 
 export default config

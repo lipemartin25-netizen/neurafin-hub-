@@ -49,28 +49,30 @@ export default async function DashboardPage() {
     const firstName = profile?.full_name?.split(' ')[0] ?? 'Usuário'
 
     return (
-        <div className="space-y-6 max-w-7xl mx-auto animate-fade-in">
+        <div className="space-y-8 max-w-[1400px] mx-auto animate-fade-in pb-12">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Olá, {firstName} 👋</h1>
-                    <p className="text-muted-foreground text-sm mt-0.5">
-                        {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    <h1 className="text-3xl font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>
+                        Dashboard <span className="text-[#00F260] opacity-80 font-normal">| {firstName}</span>
+                    </h1>
+                    <p className="text-[#8e9bb0] text-sm mt-1 font-medium tracking-wide">
+                        {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
                     {boletos.length > 0 && (
                         <Link href="/boletos">
-                            <div className="relative p-2 glass-card rounded-xl cursor-pointer hover:scale-105 transition-transform">
+                            <div className="relative p-3 glass-card rounded-xl cursor-pointer hover:scale-105 transition-transform border border-amber-500/20 shadow-[0_0_15px_rgba(245,166,35,0.15)]">
                                 <Bell className="w-5 h-5 text-amber-400" />
-                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center text-[10px] font-bold text-black">
+                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center text-[10px] font-bold text-black border-2 border-[#03050C]">
                                     {boletos.length}
                                 </div>
                             </div>
                         </Link>
                     )}
                     <Link href="/transactions/new">
-                        <button className="btn-neural flex items-center gap-2">
+                        <button className="btn-neural flex items-center gap-2 shadow-[0_0_20px_rgba(0,242,96,0.3)]">
                             <Plus className="w-4 h-4" />
                             Nova Transação
                         </button>
@@ -78,97 +80,105 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* KPI Cards (Emerald & Gold Theme) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {/* Total Balance */}
-                <div className="glass-card p-5 relative overflow-hidden">
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-lg neural-gradient flex items-center justify-center">
-                        <Wallet className="w-4 h-4 text-white" />
+                <div className="glass-card-hover p-6 relative">
+                    <div className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-gradient-to-tr from-[#F5A623] to-[#F59E0B] flex items-center justify-center shadow-[0_0_15px_rgba(245,166,35,0.4)]">
+                        <Wallet className="w-5 h-5 text-black" />
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Patrimônio Líquido</p>
-                    <p className="text-2xl font-bold text-foreground">{formatCurrency(totalBalance)}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{accounts.length} conta{accounts.length !== 1 ? 's' : ''} ativa{accounts.length !== 1 ? 's' : ''}</p>
+                    <p className="text-[11px] text-[#8e9bb0] font-bold uppercase tracking-[0.15em] mb-2">Patrimônio Líquido</p>
+                    <p className="text-[28px] font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>{formatCurrency(totalBalance)}</p>
+                    <div className="flex items-center gap-1.5 mt-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#00F260] shadow-[0_0_4px_#00F260]"></div>
+                        <p className="text-xs text-[#8e9bb0]">{accounts.length} conta{accounts.length !== 1 ? 's' : ''} ativa{accounts.length !== 1 ? 's' : ''}</p>
+                    </div>
                 </div>
 
                 {/* Month Income */}
-                <div className="glass-card p-5 relative overflow-hidden">
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                        <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <div className="glass-card-hover p-6 relative">
+                    <div className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-[#00F260]/10 flex items-center justify-center border border-[#00F260]/20">
+                        <TrendingUp className="w-5 h-5 text-[#00F260]" />
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Receitas do Mês</p>
-                    <p className="text-2xl font-bold text-emerald-400">{formatCurrency(monthIncome)}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                        <ArrowUpRight className="w-3 h-3 text-emerald-400" />
-                        <p className="text-xs text-emerald-400">Entrada total</p>
+                    <p className="text-[11px] text-[#8e9bb0] font-bold uppercase tracking-[0.15em] mb-2">Receitas</p>
+                    <p className="text-[28px] font-bold text-[#00F260] tracking-tight" style={{ fontFamily: 'Outfit' }}>{formatCurrency(monthIncome)}</p>
+                    <div className="flex items-center gap-1 mt-2">
+                        <ArrowUpRight className="w-3.5 h-3.5 text-[#00F260]" />
+                        <p className="text-xs font-medium text-[#00F260]">Entrada no mês</p>
                     </div>
                 </div>
 
                 {/* Month Expense */}
-                <div className="glass-card p-5 relative overflow-hidden">
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
-                        <TrendingDown className="w-4 h-4 text-red-400" />
+                <div className="glass-card-hover p-6 relative">
+                    <div className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                        <TrendingDown className="w-5 h-5 text-red-400" />
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Despesas do Mês</p>
-                    <p className="text-2xl font-bold text-red-400">{formatCurrency(monthExpense)}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                        <ArrowDownRight className="w-3 h-3 text-red-400" />
-                        <p className="text-xs text-red-400">Saída total</p>
+                    <p className="text-[11px] text-[#8e9bb0] font-bold uppercase tracking-[0.15em] mb-2">Despesas</p>
+                    <p className="text-[28px] font-bold text-red-400 tracking-tight" style={{ fontFamily: 'Outfit' }}>{formatCurrency(monthExpense)}</p>
+                    <div className="flex items-center gap-1 mt-2">
+                        <ArrowDownRight className="w-3.5 h-3.5 text-red-400" />
+                        <p className="text-xs font-medium text-red-400">Saída no mês</p>
                     </div>
                 </div>
 
                 {/* Savings Rate */}
-                <div className="glass-card p-5 relative overflow-hidden">
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                        <Target className="w-4 h-4 text-violet-400" />
+                <div className="glass-card-hover p-6 relative">
+                    <div className="absolute top-5 right-5 w-10 h-10 rounded-xl bg-[#03050C] border border-[#ffffff10] flex items-center justify-center shadow-inner">
+                        <Target className="w-5 h-5 text-white" />
                     </div>
-                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">Taxa de Poupança</p>
-                    <p className={`text-2xl font-bold ${savingsRate >= 0 ? 'text-violet-400' : 'text-red-400'}`}>
+                    <p className="text-[11px] text-[#8e9bb0] font-bold uppercase tracking-[0.15em] mb-2">Taxa de Poupança</p>
+                    <p className={`text-[28px] font-bold tracking-tight ${savingsRate >= 0 ? 'text-white' : 'text-red-400'}`} style={{ fontFamily: 'Outfit' }}>
                         {savingsRate.toFixed(1)}%
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {formatCurrency(monthBalance)} {monthBalance >= 0 ? 'economizado' : 'negativo'}
+                    <p className="text-xs text-[#8e9bb0] mt-2 font-medium">
+                        {savingsRate >= 0 ? '+' : ''}{formatCurrency(monthBalance)} no saldo
                     </p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent Transactions */}
-                <div className="lg:col-span-2 glass-card p-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-semibold text-foreground">Transações Recentes</h2>
-                        <Link href="/transactions" className="text-xs text-primary hover:underline">Ver todas</Link>
+                <div className="lg:col-span-2 glass-card p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>Transações Recentes</h2>
+                        <Link href="/transactions" className="text-xs font-semibold text-[#00F260] hover:text-white transition-colors uppercase tracking-wider">Ver Extrato Completo</Link>
                     </div>
 
                     {transactions.length === 0 ? (
-                        <div className="text-center py-10">
-                            <div className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center mx-auto mb-3">
-                                <ArrowUpRight className="w-6 h-6 text-muted-foreground" />
+                        <div className="text-center py-16 border border-dashed border-[#ffffff10] rounded-2xl">
+                            <div className="w-14 h-14 rounded-2xl bg-[#ffffff05] border border-[#ffffff10] flex items-center justify-center mx-auto mb-4">
+                                <ArrowUpRight className="w-6 h-6 text-[#8e9bb0]" />
                             </div>
-                            <p className="text-muted-foreground text-sm">Nenhuma transação este mês</p>
+                            <p className="text-[#8e9bb0] text-sm mb-4">Nenhuma movimentação registrada.</p>
                             <Link href="/transactions/new">
-                                <button className="btn-neural mt-3 text-xs px-4 py-2">Adicionar primeira</button>
+                                <button className="btn-neural text-xs px-6 py-2.5">Adicionar Transação</button>
                             </Link>
                         </div>
                     ) : (
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             {transactions.map((tx) => (
-                                <div key={tx.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.03] transition-colors group">
+                                <div key={tx.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-[#ffffff05] border border-transparent hover:border-[#ffffff0a] transition-all group">
                                     <div
-                                        className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0"
-                                        style={{ background: `${tx.categories?.color ?? '#6366f1'}20` }}
+                                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 shadow-inner"
+                                        style={{ background: `${tx.categories?.color ?? '#00F260'}15`, border: `1px solid ${tx.categories?.color ?? '#00F260'}30` }}
                                     >
                                         {tx.categories?.icon ?? '💳'}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-foreground truncate">{tx.description}</p>
-                                        <p className="text-xs text-muted-foreground">{formatRelativeDate(tx.date)} · {tx.accounts?.name}</p>
+                                        <p className="text-[15px] font-semibold text-white truncate group-hover:text-[#00F260] transition-colors">{tx.description}</p>
+                                        <p className="text-[13px] text-[#8e9bb0] mt-0.5">{formatRelativeDate(tx.date)} <span className="mx-1.5">•</span> {tx.accounts?.name}</p>
                                     </div>
-                                    <span className={`text-sm font-semibold shrink-0 ${tx.type === 'income' ? 'text-emerald-400' :
-                                            tx.type === 'expense' ? 'text-red-400' : 'text-violet-400'
-                                        }`}>
-                                        {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
-                                        {formatCurrency(tx.amount)}
-                                    </span>
+                                    <div className="text-right">
+                                        <p className={`text-[15px] font-bold shrink-0 ${tx.type === 'income' ? 'text-[#00F260]' :
+                                            tx.type === 'expense' ? 'text-white' : 'text-[#F5A623]'
+                                            }`}>
+                                            {tx.type === 'income' ? '+' : tx.type === 'expense' ? '-' : ''}
+                                            {formatCurrency(tx.amount)}
+                                        </p>
+                                        <p className="text-[11px] text-[#64748b] font-medium uppercase mt-1">
+                                            {tx.type === 'income' ? 'Receita' : tx.type === 'expense' ? 'Despesa' : 'Transferência'}
+                                        </p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -176,37 +186,42 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Right Column */}
-                <div className="space-y-4">
+                <div className="space-y-6">
                     {/* Goals */}
-                    <div className="glass-card p-5">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-semibold text-foreground">Metas</h2>
-                            <Link href="/goals" className="text-xs text-primary hover:underline">Ver todas</Link>
+                    <div className="glass-card p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-semibold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>Metas Ativas</h2>
+                            <Link href="/goals" className="text-xs font-semibold text-[#00F260] hover:text-white transition-colors uppercase tracking-wider">Expandir</Link>
                         </div>
                         {goals.length === 0 ? (
-                            <div className="text-center py-6">
-                                <p className="text-muted-foreground text-sm">Nenhuma meta criada</p>
+                            <div className="text-center py-8 border border-dashed border-[#ffffff10] rounded-2xl">
+                                <p className="text-[#8e9bb0] text-sm mb-3">Onde você quer chegar?</p>
                                 <Link href="/goals">
-                                    <button className="btn-ghost mt-2 text-xs px-3 py-1.5">Criar meta</button>
+                                    <button className="btn-ghost text-xs px-4 py-2 border border-[#00F260]/30 text-[#00F260] hover:bg-[#00F260]/10">Definir Meta</button>
                                 </Link>
                             </div>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="space-y-5">
                                 {goals.map((goal) => {
                                     const pct = Math.min((goal.current_amount / goal.target_amount) * 100, 100)
                                     return (
-                                        <div key={goal.id}>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{goal.icon}</span>
-                                                    <span className="text-sm font-medium text-foreground truncate max-w-[100px]">{goal.name}</span>
+                                        <div key={goal.id} className="group">
+                                            <div className="flex items-end justify-between mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#ffffff05] border border-[#ffffff10] text-sm">
+                                                        {goal.icon}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-white truncate max-w-[120px] group-hover:text-[#00F260] transition-colors">{goal.name}</p>
+                                                        <p className="text-[11px] text-[#8e9bb0] mt-0.5">{formatCurrency(goal.current_amount)}</p>
+                                                    </div>
                                                 </div>
-                                                <span className="text-xs text-muted-foreground">{pct.toFixed(0)}%</span>
+                                                <span className="text-sm font-bold text-white" style={{ fontFamily: 'Outfit' }}>{pct.toFixed(0)}%</span>
                                             </div>
-                                            <div className="progress-bar">
+                                            <div className="progress-bar h-2 relative">
                                                 <div
-                                                    className="progress-fill"
-                                                    style={{ width: `${pct}%`, background: goal.color ?? '#6366f1' }}
+                                                    className="progress-fill absolute top-0 left-0"
+                                                    style={{ width: `${pct}%`, background: goal.color ?? '#00F260', boxShadow: `0 0 10px ${goal.color ?? '#00F260'}80` }}
                                                 />
                                             </div>
                                         </div>
@@ -218,23 +233,23 @@ export default async function DashboardPage() {
 
                     {/* Boletos */}
                     {boletos.length > 0 && (
-                        <div className="glass-card p-5">
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="font-semibold text-foreground flex items-center gap-2">
-                                    <span className="text-amber-400">⚡</span> Boletos Pendentes
+                        <div className="glass-card p-6 border border-amber-500/20 shadow-[0_8px_32px_rgba(245,166,35,0.05)]">
+                            <div className="flex items-center justify-between mb-5">
+                                <h2 className="text-lg font-semibold text-white tracking-tight flex items-center gap-2" style={{ fontFamily: 'Outfit' }}>
+                                    <span className="text-[#F5A623] drop-shadow-[0_0_8px_rgba(245,166,35,0.8)]">⚡</span> DDA Radar
                                 </h2>
-                                <Link href="/boletos" className="text-xs text-primary hover:underline">Ver todos</Link>
+                                <Link href="/boletos" className="text-xs font-semibold text-[#F5A623] hover:text-white transition-colors uppercase tracking-wider">Ver todos</Link>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-3">
                                 {boletos.map((boleto) => (
-                                    <div key={boleto.id} className="flex items-center justify-between p-2.5 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                                    <div key={boleto.id} className="flex items-center justify-between p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 hover:bg-amber-500/10 transition-colors">
                                         <div>
-                                            <p className="text-xs font-medium text-foreground truncate max-w-[120px]">
-                                                {boleto.beneficiary_name ?? 'Boleto'}
+                                            <p className="text-[13px] font-semibold text-white truncate max-w-[140px]">
+                                                {boleto.beneficiary_name ?? 'Boleto Digital'}
                                             </p>
-                                            <p className="text-[10px] text-amber-400">{formatRelativeDate(boleto.due_date)}</p>
+                                            <p className="text-[11px] font-medium text-[#F5A623] mt-0.5">Vence: {formatRelativeDate(boleto.due_date)}</p>
                                         </div>
-                                        <span className="text-xs font-semibold text-amber-400">{formatCurrency(boleto.amount)}</span>
+                                        <span className="text-sm font-bold text-[#F5A623] tracking-tight">{formatCurrency(boleto.amount)}</span>
                                     </div>
                                 ))}
                             </div>
@@ -242,20 +257,22 @@ export default async function DashboardPage() {
                     )}
 
                     {/* AI Quick Chat */}
-                    <Link href="/ai">
-                        <div className="glass-card-hover p-5 cursor-pointer">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="w-8 h-8 rounded-lg neural-gradient flex items-center justify-center">
-                                    <Brain className="w-4 h-4 text-white" />
+                    <Link href="/ai" className="block">
+                        <div className="glass-card-hover p-6 bg-gradient-to-br from-[#03050C] to-[#011409] border border-[#00F260]/20 shadow-[0_8px_32px_rgba(0,242,96,0.05)]">
+                            <div className="flex items-start gap-4 mb-3">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#00F260] to-[#10B981] flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,242,96,0.3)]">
+                                    <Brain className="w-5 h-5 text-black" />
                                 </div>
-                                <div>
-                                    <p className="text-sm font-semibold text-foreground">NeuraFin IA</p>
-                                    <p className="text-xs text-muted-foreground">Assistente financeiro</p>
+                                <div className="flex-1 mt-0.5">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-base font-bold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>NeuraFin IA</p>
+                                        <Sparkles className="w-4 h-4 text-[#F5A623]" />
+                                    </div>
+                                    <p className="text-[11px] font-bold uppercase tracking-widest text-[#00F260] mt-0.5">Agente Ativo</p>
                                 </div>
-                                <Sparkles className="w-4 h-4 text-violet-400 ml-auto" />
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                                Pergunte sobre seus gastos, peça insights ou análises personalizadas.
+                            <p className="text-[13px] text-[#8e9bb0] leading-relaxed">
+                                Seu copiloto financeiro. Peça análises profundas, projeções ou insights sobre seus gastos.
                             </p>
                         </div>
                     </Link>
@@ -264,30 +281,32 @@ export default async function DashboardPage() {
 
             {/* Accounts */}
             {accounts.length > 0 && (
-                <div className="glass-card p-5">
-                    <div className="flex items-center justify-between mb-4">
-                        <h2 className="font-semibold text-foreground">Contas</h2>
-                        <Link href="/accounts" className="text-xs text-primary hover:underline">Gerenciar</Link>
+                <div className="glass-card p-6 mt-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-lg font-semibold text-white tracking-tight" style={{ fontFamily: 'Outfit' }}>Suas Contas</h2>
+                        <Link href="/accounts" className="text-xs font-semibold text-[#00F260] hover:text-white transition-colors uppercase tracking-wider">Gerenciar Carteira</Link>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         {accounts.map((account) => (
-                            <div key={account.id} className="p-3 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                            <div key={account.id} className="p-4 rounded-2xl bg-[#ffffff03] border border-[#ffffff0a] hover:border-[#ffffff15] hover:bg-[#ffffff08] transition-all group">
                                 <div
-                                    className="w-8 h-8 rounded-lg mb-2 flex items-center justify-center"
-                                    style={{ background: `${account.color}30` }}
+                                    className="w-10 h-10 rounded-xl mb-3 flex items-center justify-center shadow-inner"
+                                    style={{ background: `${account.color}15`, border: `1px solid ${account.color}30` }}
                                 >
-                                    <Wallet className="w-4 h-4" style={{ color: account.color }} />
+                                    <Wallet className="w-5 h-5" style={{ color: account.color }} />
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate">{account.name}</p>
-                                <p className={`text-sm font-bold mt-0.5 ${account.balance < 0 ? 'text-red-400' : 'text-foreground'}`}>
+                                <p className="text-[13px] font-semibold text-white truncate group-hover:text-[#00F260] transition-colors">{account.name}</p>
+                                <p className={`text-[15px] font-bold tracking-tight mt-1 ${account.balance < 0 ? 'text-red-400' : 'text-[#8e9bb0]'}`}>
                                     {formatCurrency(account.balance)}
                                 </p>
                             </div>
                         ))}
-                        <Link href="/accounts/new">
-                            <div className="p-3 rounded-xl border border-dashed border-white/10 hover:border-primary/30 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer min-h-[80px]">
-                                <Plus className="w-4 h-4 text-muted-foreground" />
-                                <p className="text-xs text-muted-foreground">Nova conta</p>
+                        <Link href="/accounts/new" className="block">
+                            <div className="h-full p-4 rounded-2xl border border-dashed border-[#ffffff15] hover:border-[#00F260]/50 hover:bg-[#00F260]/5 transition-all flex flex-col items-center justify-center gap-2 group cursor-pointer min-h-[110px]">
+                                <div className="w-8 h-8 rounded-full bg-[#ffffff0a] flex items-center justify-center group-hover:bg-[#00F260]/20 transition-colors">
+                                    <Plus className="w-4 h-4 text-[#8e9bb0] group-hover:text-[#00F260]" />
+                                </div>
+                                <p className="text-[13px] font-semibold text-[#8e9bb0] group-hover:text-white transition-colors">Vincular Conta</p>
                             </div>
                         </Link>
                     </div>

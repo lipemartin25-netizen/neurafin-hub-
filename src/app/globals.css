@@ -1,45 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@layer base {
-  :root {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 263 70% 60%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 32% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 263 70% 60%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 32% 17%;
-    --input: 217 32% 17%;
-    --ring: 263 70% 60%;
-
-    /* Neural Brand Colors */
-    --neural-purple: 263 70% 60%;
-    --neural-blue: 217 91% 60%;
-    --neural-green: 142 71% 45%;
-    --neural-red: 0 84% 60%;
-    --neural-amber: 38 92% 50%;
-    --neural-teal: 172 66% 50%;
-
-    /* Glassmorphism */
-    --glass-bg: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  }
-}
 
 @layer base {
   * {
@@ -48,11 +9,21 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     background-image:
-      radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.06) 0%, transparent 50%);
+      radial-gradient(ellipse at 15% 0%, rgba(0, 242, 96, 0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 85% 100%, rgba(245, 166, 35, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.01) 0%, transparent 100%);
     min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Outfit', sans-serif;
   }
 
   html {
@@ -61,34 +32,55 @@
 }
 
 @layer components {
-  /* ===== GLASS CARD ===== */
+
+  /* ===== GLASS CARD PRO MAX ===== */
   .glass-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    box-shadow: var(--glass-shadow);
+    background: rgba(255, 255, 255, 0.015);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.4);
     @apply rounded-2xl;
   }
 
   .glass-card-hover {
-    @apply glass-card transition-all duration-300;
+    @apply glass-card transition-all duration-300 relative overflow-hidden;
+  }
+
+  .glass-card-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at center, rgba(0, 242, 96, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
   .glass-card-hover:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(99, 102, 241, 0.3);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(0, 242, 96, 0.15);
     transform: translateY(-2px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(0, 242, 96, 0.1);
+  }
+
+  .glass-card-hover:hover::before {
+    opacity: 1;
   }
 
   /* ===== NEURAL GRADIENT ===== */
   .neural-gradient {
-    background: linear-gradient(135deg, hsl(263, 70%, 60%), hsl(217, 91%, 60%));
+    background: linear-gradient(135deg, #00F260, #059669);
   }
 
   .neural-gradient-text {
-    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    background: linear-gradient(135deg, #00F260, #10B981, #A7F3D0);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -98,11 +90,12 @@
   .account-card-3d {
     perspective: 1000px;
     transform-style: preserve-3d;
-    transition: transform 0.4s ease;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
   }
 
   .account-card-3d:hover {
-    transform: rotateY(-5deg) rotateX(3deg);
+    transform: rotateY(-3deg) rotateX(5deg) translateY(-5px);
+    box-shadow: -5px 15px 30px rgba(0, 242, 96, 0.15);
   }
 
   /* ===== ANIMATED BACKGROUND ===== */
@@ -116,7 +109,7 @@
     position: absolute;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent);
+    background: radial-gradient(circle, rgba(0, 242, 96, 0.15), transparent);
     border-radius: 50%;
     top: -100px;
     right: -100px;
@@ -128,7 +121,7 @@
     position: absolute;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.1), transparent);
+    background: radial-gradient(circle, rgba(245, 166, 35, 0.1), transparent);
     border-radius: 50%;
     bottom: -50px;
     left: -50px;
@@ -137,95 +130,99 @@
 
   /* ===== SIDEBAR ===== */
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground
-      transition-all duration-200 cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground transition-all duration-300 cursor-pointer border border-transparent;
   }
 
   .sidebar-item:hover {
     @apply text-foreground;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.05);
   }
 
   .sidebar-item.active {
-    @apply text-foreground;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.1));
-    border: 1px solid rgba(99, 102, 241, 0.3);
+    @apply text-foreground font-semibold;
+    background: linear-gradient(90deg, rgba(0, 242, 96, 0.1), transparent);
+    border: 1px solid rgba(0, 242, 96, 0.2);
+    border-right: none;
+    border-left: 2px solid #00F260;
   }
 
   /* ===== INCOME / EXPENSE BADGES ===== */
   .badge-income {
-    @apply px-2 py-0.5 rounded-full text-xs font-medium;
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    @apply px-2 py-0.5 rounded-md text-xs font-semibold tracking-wide uppercase;
+    background: rgba(0, 242, 96, 0.1);
+    color: #00F260;
+    border: 1px solid rgba(0, 242, 96, 0.2);
   }
 
   .badge-expense {
-    @apply px-2 py-0.5 rounded-full text-xs font-medium;
-    background: rgba(239, 68, 68, 0.15);
+    @apply px-2 py-0.5 rounded-md text-xs font-semibold tracking-wide uppercase;
+    background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.2);
   }
 
   .badge-transfer {
-    @apply px-2 py-0.5 rounded-full text-xs font-medium;
-    background: rgba(99, 102, 241, 0.15);
-    color: #818cf8;
-    border: 1px solid rgba(99, 102, 241, 0.2);
+    @apply px-2 py-0.5 rounded-md text-xs font-semibold tracking-wide uppercase;
+    background: rgba(245, 166, 35, 0.1);
+    color: #F5A623;
+    border: 1px solid rgba(245, 166, 35, 0.2);
   }
 
   /* ===== PROGRESS BAR ===== */
   .progress-bar {
-    @apply h-2 rounded-full overflow-hidden;
-    background: rgba(255, 255, 255, 0.08);
+    @apply h-1.5 rounded-full overflow-hidden;
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
   }
 
   .progress-fill {
-    @apply h-full rounded-full transition-all duration-700 ease-out;
+    @apply h-full rounded-full transition-all duration-1000 ease-out;
+    box-shadow: 0 0 10px rgba(0, 242, 96, 0.4);
   }
 
-  /* ===== INPUT ===== */
+  /* ===== INPUT IMPERIAL ===== */
   .neural-input {
-    @apply w-full px-4 py-3 rounded-xl text-sm font-medium text-foreground
-      transition-all duration-200 outline-none;
-    background: rgba(255, 255, 255, 0.04);
+    @apply w-full px-4 py-3.5 rounded-xl text-sm font-medium text-foreground transition-all duration-300 outline-none;
+    background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
   }
 
   .neural-input:focus {
-    border-color: rgba(99, 102, 241, 0.5);
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: rgba(0, 242, 96, 0.4);
+    background: rgba(0, 242, 96, 0.02);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(0, 242, 96, 0.1);
   }
 
   .neural-input::placeholder {
-    @apply text-muted-foreground;
+    @apply text-muted-foreground/60 font-normal;
   }
 
-  /* ===== BUTTON ===== */
+  /* ===== BUTTON EXPERT ===== */
   .btn-neural {
-    @apply px-5 py-2.5 rounded-xl text-sm font-semibold text-white
-      transition-all duration-200 active:scale-95;
-    background: linear-gradient(135deg, hsl(263, 70%, 55%), hsl(217, 91%, 55%));
+    @apply px-5 py-3 rounded-xl text-sm font-bold text-black transition-all duration-300 active:scale-95;
+    background: linear-gradient(135deg, #00F260, #10B981);
+    box-shadow: 0 4px 15px rgba(0, 242, 96, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
   }
 
   .btn-neural:hover {
-    background: linear-gradient(135deg, hsl(263, 70%, 60%), hsl(217, 91%, 60%));
-    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #10B981, #059669);
+    box-shadow: 0 6px 20px rgba(0, 242, 96, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
   }
 
   .btn-ghost {
-    @apply px-5 py-2.5 rounded-xl text-sm font-medium text-muted-foreground
-      transition-all duration-200 active:scale-95;
+    @apply px-5 py-3 rounded-xl text-sm font-semibold text-muted-foreground transition-all duration-300 active:scale-95;
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .btn-ghost:hover {
     @apply text-foreground;
     background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   /* ===== SCROLLBAR ===== */
@@ -240,65 +237,97 @@
 
   ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: 6px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(0, 242, 96, 0.3);
   }
 }
 
 @layer utilities {
+
   /* ===== ANIMATIONS ===== */
   @keyframes float {
-    0%, 100% { transform: translateY(0px) }
-    50% { transform: translateY(-20px) }
+
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg)
+    }
+
+    50% {
+      transform: translateY(-30px) rotate(2deg)
+    }
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px) }
-    to { opacity: 1; transform: translateY(0) }
+    from {
+      opacity: 0;
+      transform: translateY(12px)
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0)
+    }
   }
 
   @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-10px) }
-    to { opacity: 1; transform: translateX(0) }
+    from {
+      opacity: 0;
+      transform: translateX(-15px)
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0)
+    }
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4) }
-    50% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0) }
+
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(0, 242, 96, 0.4)
+    }
+
+    50% {
+      box-shadow: 0 0 0 12px rgba(0, 242, 96, 0)
+    }
   }
 
   @keyframes shimmer {
-    from { background-position: -200% center }
-    to { background-position: 200% center }
+    from {
+      background-position: -200% center
+    }
+
+    to {
+      background-position: 200% center
+    }
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
+    animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-slide-in {
-    animation: slideIn 0.3s ease-out forwards;
+    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-float {
-    animation: float 6s ease-in-out infinite;
+    animation: float 8s ease-in-out infinite;
   }
 
   .animate-pulse-glow {
-    animation: pulse-glow 2s infinite;
+    animation: pulse-glow 2.5s infinite;
   }
 
   .skeleton {
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.05) 25%,
-      rgba(255, 255, 255, 0.08) 37%,
-      rgba(255, 255, 255, 0.05) 63%
-    );
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.02) 25%,
+        rgba(255, 255, 255, 0.05) 37%,
+        rgba(255, 255, 255, 0.02) 63%);
     background-size: 400% 100%;
-    animation: shimmer 1.4s ease infinite;
+    animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 }

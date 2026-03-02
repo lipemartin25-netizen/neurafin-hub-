@@ -30,16 +30,18 @@ export default function RootLayout({
             <head>
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
             </head>
-            <body>
+            <body className="font-sans antialiased selection:bg-primary/30 selection:text-white">
                 {children}
                 <Toaster
                     position="top-right"
                     toastOptions={{
                         style: {
-                            background: 'rgba(15, 23, 42, 0.95)',
-                            border: '1px solid rgba(255,255,255,0.08)',
-                            color: '#f1f5f9',
+                            background: 'rgba(5, 5, 5, 0.95)',
+                            border: '1px solid rgba(255,255,255,0.05)',
+                            color: '#ffffff',
+                            backdropFilter: 'blur(10px)'
                         },
                     }}
                 />
