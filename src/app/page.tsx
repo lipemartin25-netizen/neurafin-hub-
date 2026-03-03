@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
+
 import {
     ArrowRight, Brain, Shield, BarChart3, Zap, Fingerprint, Globe,
     Check, Menu, X,
@@ -66,12 +66,12 @@ function Navbar() {
             }}
         >
             <div style={{ maxWidth: 1152, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px' }}>
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+                <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
                     <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldGrad }} />
                     <span style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                         Aurum<GoldText>Finance</GoldText>
                     </span>
-                </Link>
+                </a>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 32 }} className="hidden md:flex">
                     {['Soluções', 'Planos', 'Contato'].map((l) => (
@@ -86,8 +86,8 @@ function Navbar() {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }} className="hidden md:flex">
-                    <Link href="/login" style={{ fontSize: 14, color: C.textMuted, textDecoration: 'none' }}>Entrar</Link>
-                    <Link href="/register" className="btn-gold" style={{ fontSize: 14 }}>Começar agora</Link>
+                    <a href="/login" style={{ fontSize: 14, color: C.textMuted, textDecoration: 'none' }}>Entrar</a>
+                    <a href="/register" className="btn-gold" style={{ fontSize: 14 }}>Começar agora</a>
                 </div>
 
                 <button onClick={() => setMobileOpen(!mobileOpen)} style={{ color: C.text, background: 'none', border: 'none', cursor: 'pointer' }} className="md:hidden">
@@ -103,9 +103,9 @@ function Navbar() {
                             {l}
                         </a>
                     ))}
-                    <Link href="/register" className="btn-gold" style={{ display: 'block', textAlign: 'center', marginTop: 16, fontSize: 14 }}>
+                    <a href="/register" className="btn-gold" style={{ display: 'block', textAlign: 'center', marginTop: 16, fontSize: 14 }}>
                         Começar agora
-                    </Link>
+                    </a>
                 </div>
             )}
         </nav>
@@ -161,9 +161,9 @@ function Hero() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}
                     style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 40 }}
                 >
-                    <Link href="/register" className="btn-gold" style={{ padding: '12px 32px', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <a href="/register" className="btn-gold" style={{ padding: '12px 32px', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                         Explorar Plataforma <ArrowRight size={18} />
-                    </Link>
+                    </a>
                     <a href="#solucoes" className="btn-gold-outline" style={{ padding: '12px 32px', fontSize: 16 }}>
                         Ver Demo
                     </a>
@@ -330,11 +330,11 @@ function Pricing() {
                                 ))}
                             </ul>
 
-                            <Link href="/register" className={plan.hl ? 'btn-gold' : 'btn-gold-outline'}
+                            <a href="/register" className={plan.hl ? 'btn-gold' : 'btn-gold-outline'}
                                 style={{ textAlign: 'center', fontSize: 14 }}
                             >
                                 {plan.cta}
-                            </Link>
+                            </a>
                         </motion.div>
                     ))}
                 </div>
@@ -364,9 +364,9 @@ function CTA() {
                         Junte-se a milhares de pessoas que já confiam na Aurum Finance para alcançar a liberdade financeira.
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 40 }}>
-                        <Link href="/register" className="btn-gold" style={{ padding: '12px 32px', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                        <a href="/register" className="btn-gold" style={{ padding: '12px 32px', fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                             Criar conta gratuita <ArrowRight size={18} />
-                        </Link>
+                        </a>
                         <a href="#contato" className="btn-gold-outline" style={{ padding: '12px 32px', fontSize: 16 }}>
                             Falar com especialista
                         </a>
@@ -387,10 +387,10 @@ function Footer() {
     return (
         <footer style={{ borderTop: `1px solid rgba(255,255,255,0.03)`, padding: '32px 0' }}>
             <div style={{ maxWidth: 1152, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '0 24px' }}>
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+                <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                     <div style={{ width: 24, height: 24, borderRadius: 6, background: C.goldGrad }} />
                     <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Aurum<GoldText>Finance</GoldText></span>
-                </Link>
+                </a>
                 <div style={{ display: 'flex', gap: 24, fontSize: 14, color: C.textMuted }}>
                     <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Termos</a>
                     <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidade</a>

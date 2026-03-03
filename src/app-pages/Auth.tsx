@@ -17,14 +17,21 @@ const Auth = () => {
 
         const { error } = isLogin
             ? await supabase.auth.signInWithPassword({ email, password })
-            : await supabase.auth.signUp({ email, password });
+            : await supabase.auth.signUp({
+                email,
+                password,
+                options: { emailRedirectTo: window.location.origin + '/dashboard' }
+            });
 
         if (!error) navigate("/dashboard");
         setLoading(false);
     };
 
     const socialLogin = async (provider: 'google' | 'github') => {
-        await supabase.auth.signInWithOAuth({ provider });
+        await supabase.auth.signInWithOAuth({
+            provider,
+            options: { redirectTo: window.location.origin + '/dashboard' }
+        });
     };
 
     return (
