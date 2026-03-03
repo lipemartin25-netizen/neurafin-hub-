@@ -1,9 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { TrendingUp, Plus, Eye, EyeOff, ArrowUpRight, ArrowDownRight, DollarSign, Percent, BarChart3, PieChart } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { TrendingUp, Plus, Eye, EyeOff, ArrowUpRight, ArrowDownRight, DollarSign, Percent, X } from 'lucide-react'
 import { useState } from 'react'
-import { C, cardStyle, btnGoldStyle, btnOutlineStyle, fmt, fmtPct } from '@/lib/theme'
+import { C, cardStyle, cardHlStyle, inputStyle, btnGoldStyle, btnOutlineStyle, fmt, fmtPct } from '@/lib/theme'
+import { toast } from 'sonner'
 
 const TYPE_MAP: Record<string, { label: string; icon: string }> = {
     renda_fixa: { label: 'Renda Fixa', icon: '🏦' },
@@ -15,7 +16,9 @@ const TYPE_MAP: Record<string, { label: string; icon: string }> = {
 
 const COLORS: Record<string, string> = { renda_fixa: C.emerald, acao: C.blue, fii: C.violet, cripto: C.yellow, fundo: '#6B7280' }
 
-const INVESTMENTS = [
+type Investment = { ticker: string; name: string; type: string; invested: number; current: number; monthlyReturn: number }
+
+const INITIAL_INVESTMENTS: Investment[] = [
     { ticker: 'IPCA35', name: 'Tesouro IPCA+ 2035', type: 'renda_fixa', invested: 45000, current: 52300, monthlyReturn: 1.2 },
     { ticker: 'SELIC29', name: 'Tesouro Selic 2029', type: 'renda_fixa', invested: 30000, current: 31800, monthlyReturn: 0.9 },
     { ticker: 'VALE3', name: 'Vale S.A.', type: 'acao', invested: 12000, current: 14800, monthlyReturn: 2.8 },
@@ -28,22 +31,56 @@ const INVESTMENTS = [
 ]
 
 export default function InvestmentsPage() {
+    const [investments, setInvestments] = useState<Investment[]>(INITIAL_INVESTMENTS)
     const [showValues, setShowValues] = useState(true)
     const [selectedType, setSelectedType] = useState('all')
+    const [showModal, setShowModal] = useState(false)
+
+    // Form State
+    const [ticker, setTicker] = useState('')
+    const [invName, setInvName] = useState('')
+    const [invType, setInvType] = useState('renda_fixa')
+    const [invAmount, setInvAmount] = useState('')
+
     const display = (v: number) => showValues ? fmt(v) : '•••••'
 
-    const filtered = selectedType === 'all' ? INVESTMENTS : INVESTMENTS.filter(i => i.type === selectedType)
-    const totalInvested = INVESTMENTS.reduce((s, i) => s + i.invested, 0)
-    const totalCurrent = INVESTMENTS.reduce((s, i) => s + i.current, 0)
+    const filtered = selectedType === 'all' ? investments : investments.filter(i => i.type === selectedType)
+    const totalInvested = investments.reduce((s, i) => s + i.invested, 0)
+    const totalCurrent = investments.reduce((s, i) => s + i.current, 0)
     const totalReturn = totalCurrent - totalInvested
-    const totalReturnPct = (totalReturn / totalInvested) * 100
+    const totalReturnPct = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0
 
     // Allocation
     const allocation = Object.entries(TYPE_MAP).map(([type, meta]) => {
-        const items = INVESTMENTS.filter(i => i.type === type)
+        const items = investments.filter(i => i.type === type)
         const total = items.reduce((s, i) => s + i.current, 0)
         return { type, ...meta, total, pct: totalCurrent > 0 ? (total / totalCurrent) * 100 : 0 }
     }).filter(a => a.total > 0)
+
+    const handleSave = () => {
+        if (!ticker || !invAmount) {
+            toast.error('Preencha o ticker e o valor investido')
+            return
+        }
+
+        const newInv: Investment = {
+            ticker: ticker.toUpperCase(),
+            name: invName || ticker.toUpperCase(),
+            type: invType,
+            invested: parseFloat(invAmount),
+            current: parseFloat(invAmount), // Start with current = invested
+            monthlyReturn: 0
+        }
+
+        setInvestments([newInv, ...investments])
+        setShowModal(false)
+        setTicker('')
+        setInvName('')
+        setInvAmount('')
+        toast.success('Ativo adicionado com sucesso!', {
+            style: { background: C.card, color: C.text, border: `1px solid ${C.border}` }
+        })
+    }
 
     return (
         <div>
@@ -56,7 +93,7 @@ export default function InvestmentsPage() {
                     <button onClick={() => setShowValues(!showValues)} style={btnOutlineStyle}>
                         {showValues ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
-                    <button style={btnGoldStyle}><Plus size={16} /> Novo Ativo</button>
+                    <button onClick={() => setShowModal(true)} style={btnGoldStyle}><Plus size={16} /> Novo Ativo</button>
                 </div>
             </div>
 
@@ -112,48 +149,98 @@ export default function InvestmentsPage() {
 
             {/* Investment Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12 }}>
-                {filtered.map((inv, i) => {
-                    const ret = inv.current - inv.invested
-                    const retPct = (ret / inv.invested) * 100
-                    const positive = ret >= 0
-                    return (
-                        <motion.div key={inv.ticker} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-                            style={{ ...cardStyle, padding: 20 }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                    <div style={{ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `${COLORS[inv.type]}15`, fontSize: 16 }}>
-                                        {TYPE_MAP[inv.type]?.icon}
+                <AnimatePresence>
+                    {filtered.map((inv, i) => {
+                        const ret = inv.current - inv.invested
+                        const retPct = inv.invested > 0 ? (ret / inv.invested) * 100 : 0
+                        const positive = ret >= 0
+                        return (
+                            <motion.div key={inv.ticker} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ delay: i * 0.04 }}
+                                style={{ ...cardStyle, padding: 20 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `${COLORS[inv.type]}15`, fontSize: 16 }}>
+                                            {TYPE_MAP[inv.type]?.icon}
+                                        </div>
+                                        <div>
+                                            <p style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{inv.ticker}</p>
+                                            <p style={{ fontSize: 11, color: C.textMuted }}>{inv.name}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p style={{ fontSize: 14, fontWeight: 600, color: C.text }}>{inv.ticker}</p>
-                                        <p style={{ fontSize: 11, color: C.textMuted }}>{inv.name}</p>
-                                    </div>
+                                    <span style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 2, padding: '4px 8px', borderRadius: 8, fontSize: 11, fontWeight: 500,
+                                        color: positive ? C.emerald : C.red,
+                                        backgroundColor: positive ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
+                                    }}>
+                                        {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+                                        {fmtPct(inv.monthlyReturn)}
+                                    </span>
                                 </div>
-                                <span style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 2, padding: '4px 8px', borderRadius: 8, fontSize: 11, fontWeight: 500,
-                                    color: positive ? C.emerald : C.red,
-                                    backgroundColor: positive ? 'rgba(52,211,153,0.1)' : 'rgba(248,113,113,0.1)',
-                                }}>
-                                    {positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
-                                    {fmtPct(inv.monthlyReturn)}
-                                </span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                                    <span style={{ color: C.textMuted }}>Investido</span>
+                                    <span style={{ color: C.text }}>{display(inv.invested)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                                    <span style={{ color: C.textMuted }}>Atual</span>
+                                    <span style={{ fontWeight: 500, color: C.text }}>{display(inv.current)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                                    <span style={{ color: C.textMuted }}>Rendimento</span>
+                                    <span style={{ fontWeight: 600, color: positive ? C.emerald : C.red }}>{display(ret)} ({fmtPct(retPct)})</span>
+                                </div>
+                            </motion.div>
+                        )
+                    })}
+                </AnimatePresence>
+            </div>
+
+            {/* Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 16 }}
+                        onClick={() => setShowModal(false)}>
+                        <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+                            onClick={e => e.stopPropagation()} style={{ ...cardHlStyle, width: '100%', maxWidth: 440, padding: 24 }}>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+                                <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Novo Ativo</h2>
+                                <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                                <span style={{ color: C.textMuted }}>Investido</span>
-                                <span style={{ color: C.text }}>{display(inv.invested)}</span>
+
+                            <div style={{ marginBottom: 16 }}>
+                                <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Classe do Ativo</label>
+                                <select value={invType} onChange={e => setInvType(e.target.value)} style={{ ...inputStyle, width: '100%', appearance: 'none' }}>
+                                    {Object.entries(TYPE_MAP).map(([key, meta]) => (
+                                        <option key={key} value={key} style={{ color: '#000' }}>{meta.icon} {meta.label}</option>
+                                    ))}
+                                </select>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
-                                <span style={{ color: C.textMuted }}>Atual</span>
-                                <span style={{ fontWeight: 500, color: C.text }}>{display(inv.current)}</span>
+
+                            <div style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Ticker</label>
+                                    <input value={ticker} onChange={e => setTicker(e.target.value.toUpperCase())} placeholder="Ex: PETR4" style={inputStyle} />
+                                </div>
+                                <div style={{ flex: 2 }}>
+                                    <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Nome (Opcional)</label>
+                                    <input value={invName} onChange={e => setInvName(e.target.value)} placeholder="Ex: Petrobras" style={inputStyle} />
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
-                                <span style={{ color: C.textMuted }}>Rendimento</span>
-                                <span style={{ fontWeight: 600, color: positive ? C.emerald : C.red }}>{display(ret)} ({fmtPct(retPct)})</span>
+
+                            <div style={{ marginBottom: 24 }}>
+                                <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Valor Investido (R$)</label>
+                                <input type="number" value={invAmount} onChange={e => setInvAmount(e.target.value)} placeholder="0,00" style={{ ...inputStyle, fontSize: 24, fontWeight: 700 }} />
+                            </div>
+
+                            <div style={{ display: 'flex', gap: 12 }}>
+                                <button onClick={() => setShowModal(false)} style={{ ...btnOutlineStyle, flex: 1, padding: '12px 0' }}>Cancelar</button>
+                                <button onClick={handleSave} style={{ ...btnGoldStyle, flex: 1, padding: '12px 0' }}>Salvar Ativo</button>
                             </div>
                         </motion.div>
-                    )
-                })}
-            </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

@@ -1,14 +1,14 @@
 'use client'
 
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import {
     LayoutDashboard, ArrowLeftRight, CreditCard, FileText, Building2,
     TrendingUp, PieChart, Heart, Target, BarChart3, Bot, FlaskConical,
-    Settings, Menu, X, LogOut, Bell, ChevronLeft,
+    Settings, Menu, X, LogOut, Bell, ChevronLeft, DollarSign,
 } from 'lucide-react'
-import { C, cardStyle, btnGoldStyle } from '@/lib/theme'
+import { C } from '@/lib/theme'
 import GoldText from './GoldText'
 
 const MENU = [
@@ -20,7 +20,7 @@ const MENU = [
     { label: 'Investimentos', icon: TrendingUp, href: '/investments' },
     { label: 'Patrimônio', icon: PieChart, href: '/patrimony' },
     { label: 'Saúde Financeira', icon: Heart, href: '/health' },
-    { label: 'Orçamentos', icon: Target, href: '/budgets' },
+    { label: 'Orçamentos', icon: DollarSign, href: '/budgets' },
     { label: 'Metas', icon: Target, href: '/goals' },
     { label: 'Relatórios', icon: BarChart3, href: '/reports' },
     { label: 'Assistente IA', icon: Bot, href: '/ai' },
@@ -30,162 +30,190 @@ const MENU = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
+    const router = useRouter()
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [mobileOpen, setMobileOpen] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const check = () => setIsMobile(window.innerWidth < 1024)
+        check()
+        window.addEventListener('resize', check)
+        return () => window.removeEventListener('resize', check)
+    }, [])
+
+    // Close mobile sidebar on route change
+    useEffect(() => {
+        setMobileOpen(false)
+    }, [pathname])
+
+    const handleLogout = () => {
+        // TODO: integrar com Supabase auth.signOut()
+        router.push('/login')
+    }
+
+    const SidebarContent = ({ mobile = false }: { mobile?: boolean }) => (
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {/* Logo */}
+            <div style={{
+                padding: mobile ? '20px 16px' : '20px 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                borderBottom: `1px solid ${C.border}`,
+            }}>
+                <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldGrad, flexShrink: 0 }} />
+                    {(mobile || sidebarOpen) && (
+                        <span style={{ fontSize: 16, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>
+                            Aurum<GoldText>Fin</GoldText>
+                        </span>
+                    )}
+                </Link>
+                {mobile ? (
+                    <button onClick={() => setMobileOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, padding: 4 }}>
+                        <X size={18} />
+                    </button>
+                ) : (
+                    <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, padding: 4 }}>
+                        <ChevronLeft size={16} style={{ transform: sidebarOpen ? 'none' : 'rotate(180deg)', transition: 'transform 0.3s' }} />
+                    </button>
+                )}
+            </div>
+
+            {/* Menu */}
+            <nav style={{ flex: 1, padding: '12px 8px', overflowY: 'auto', overflowX: 'hidden' }}>
+                {MENU.map((item) => {
+                    const active = pathname === item.href
+                    const Icon = item.icon
+                    const showLabel = mobile || sidebarOpen
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            title={!showLabel ? item.label : undefined}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 12,
+                                padding: showLabel ? '10px 12px' : '10px 0',
+                                justifyContent: showLabel ? 'flex-start' : 'center',
+                                marginBottom: 2,
+                                borderRadius: 10,
+                                fontSize: 13,
+                                fontWeight: active ? 600 : 400,
+                                color: active ? C.gold : C.textMuted,
+                                backgroundColor: active ? 'rgba(201,168,88,0.08)' : 'transparent',
+                                borderLeft: active ? `2px solid ${C.gold}` : '2px solid transparent',
+                                textDecoration: 'none',
+                                transition: 'all 0.2s ease',
+                                whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!active) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.03)'
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!active) e.currentTarget.style.backgroundColor = 'transparent'
+                            }}
+                        >
+                            <Icon size={18} style={{ flexShrink: 0 }} />
+                            {showLabel && item.label}
+                            {showLabel && item.highlight && (
+                                <span style={{
+                                    marginLeft: 'auto', padding: '2px 6px', borderRadius: 999,
+                                    fontSize: 9, fontWeight: 600, color: C.bg, background: C.goldGrad,
+                                }}>NEW</span>
+                            )}
+                        </Link>
+                    )
+                })}
+            </nav>
+
+            {/* Footer */}
+            <div style={{ padding: '12px 8px', borderTop: `1px solid ${C.border}` }}>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        display: 'flex', alignItems: 'center', gap: 12, width: '100%',
+                        padding: (mobile || sidebarOpen) ? '10px 12px' : '10px 0',
+                        justifyContent: (mobile || sidebarOpen) ? 'flex-start' : 'center',
+                        background: 'none', border: 'none', borderRadius: 10,
+                        fontSize: 13, color: C.red, cursor: 'pointer',
+                        transition: 'background 0.2s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.05)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                >
+                    <LogOut size={18} style={{ flexShrink: 0 }} />
+                    {(mobile || sidebarOpen) && 'Sair'}
+                </button>
+            </div>
+        </div>
+    )
 
     return (
         <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: C.bg, color: C.text }}>
             {/* Sidebar — Desktop */}
-            <aside
-                style={{
-                    position: 'fixed',
-                    top: 0, left: 0, bottom: 0,
+            {!isMobile && (
+                <aside style={{
+                    position: 'fixed', top: 0, left: 0, bottom: 0,
                     width: sidebarOpen ? 260 : 72,
                     backgroundColor: '#0d0f14',
                     borderRight: `1px solid ${C.border}`,
-                    display: 'flex',
-                    flexDirection: 'column',
                     transition: 'width 0.3s ease',
                     zIndex: 40,
                     overflow: 'hidden',
-                }}
-                className="hidden lg:flex"
-            >
-                {/* Logo */}
-                <div style={{ padding: '20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${C.border}` }}>
-                    <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldGrad, flexShrink: 0 }} />
-                        {sidebarOpen && (
-                            <span style={{ fontSize: 16, fontWeight: 700, color: C.text, whiteSpace: 'nowrap' }}>
-                                Aurum<GoldText>Fin</GoldText>
-                            </span>
-                        )}
-                    </Link>
-                    <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: C.textMuted, padding: 4 }}>
-                        <ChevronLeft size={16} style={{ transform: sidebarOpen ? 'none' : 'rotate(180deg)', transition: 'transform 0.3s' }} />
-                    </button>
-                </div>
-
-                {/* Menu */}
-                <nav style={{ flex: 1, padding: '12px 8px', overflowY: 'auto', overflowX: 'hidden' }}>
-                    {MENU.map((item) => {
-                        const active = pathname === item.href
-                        const Icon = item.icon
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 12,
-                                    padding: sidebarOpen ? '10px 12px' : '10px 0',
-                                    justifyContent: sidebarOpen ? 'flex-start' : 'center',
-                                    marginBottom: 2,
-                                    borderRadius: 10,
-                                    fontSize: 13,
-                                    fontWeight: active ? 600 : 400,
-                                    color: active ? C.gold : C.textMuted,
-                                    backgroundColor: active ? 'rgba(201,168,88,0.08)' : 'transparent',
-                                    borderLeft: active ? `2px solid ${C.gold}` : '2px solid transparent',
-                                    textDecoration: 'none',
-                                    transition: 'all 0.2s ease',
-                                    whiteSpace: 'nowrap',
-                                    ...(item.highlight && !active ? { animation: 'gold-pulse 3s infinite' } : {}),
-                                }}
-                            >
-                                <Icon size={18} style={{ flexShrink: 0 }} />
-                                {sidebarOpen && item.label}
-                            </Link>
-                        )
-                    })}
-                </nav>
-            </aside>
+                }}>
+                    <SidebarContent />
+                </aside>
+            )}
 
             {/* Mobile Header */}
-            <div
-                style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0,
-                    height: 56,
-                    backgroundColor: 'rgba(11,13,16,0.9)',
-                    backdropFilter: 'blur(20px)',
+            {isMobile && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, height: 56,
+                    backgroundColor: 'rgba(11,13,16,0.9)', backdropFilter: 'blur(20px)',
                     borderBottom: `1px solid ${C.border}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0 16px',
-                    zIndex: 50,
-                }}
-                className="lg:hidden"
-            >
-                <button onClick={() => setMobileOpen(true)} style={{ background: 'none', border: 'none', color: C.text, cursor: 'pointer' }}>
-                    <Menu size={22} />
-                </button>
-                <span style={{ fontWeight: 700, color: C.text }}>Aurum<GoldText>Fin</GoldText></span>
-                <Bell size={18} style={{ color: C.textMuted }} />
-            </div>
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '0 16px', zIndex: 50,
+                }}>
+                    <button onClick={() => setMobileOpen(true)} style={{ background: 'none', border: 'none', color: C.text, cursor: 'pointer' }}>
+                        <Menu size={22} />
+                    </button>
+                    <Link href="/dashboard" style={{ textDecoration: 'none', fontWeight: 700, color: C.text }}>
+                        Aurum<GoldText>Fin</GoldText>
+                    </Link>
+                    <button onClick={() => router.push('/settings')} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}>
+                        <Bell size={18} />
+                    </button>
+                </div>
+            )}
 
             {/* Mobile Sidebar Overlay */}
-            {mobileOpen && (
+            {isMobile && mobileOpen && (
                 <div
                     style={{ position: 'fixed', inset: 0, zIndex: 50, backgroundColor: 'rgba(0,0,0,0.6)' }}
                     onClick={() => setMobileOpen(false)}
-                    className="lg:hidden"
                 >
                     <div
                         style={{
-                            width: 280,
-                            height: '100%',
-                            backgroundColor: '#0d0f14',
+                            width: 280, height: '100%', backgroundColor: '#0d0f14',
                             borderRight: `1px solid ${C.border}`,
-                            padding: 16,
-                            overflowY: 'auto',
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-                            <span style={{ fontWeight: 700, color: C.text, fontSize: 16 }}>Aurum<GoldText>Fin</GoldText></span>
-                            <button onClick={() => setMobileOpen(false)} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        {MENU.map((item) => {
-                            const active = pathname === item.href
-                            const Icon = item.icon
-                            return (
-                                <Link
-                                    key={item.href}
-                                    href={item.href}
-                                    onClick={() => setMobileOpen(false)}
-                                    style={{
-                                        display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px',
-                                        marginBottom: 2, borderRadius: 10, fontSize: 13,
-                                        fontWeight: active ? 600 : 400,
-                                        color: active ? C.gold : C.textMuted,
-                                        backgroundColor: active ? 'rgba(201,168,88,0.08)' : 'transparent',
-                                        textDecoration: 'none',
-                                    }}
-                                >
-                                    <Icon size={18} /> {item.label}
-                                </Link>
-                            )
-                        })}
+                        <SidebarContent mobile />
                     </div>
                 </div>
             )}
 
             {/* Main Content */}
-            <main
-                style={{
-                    flex: 1,
-                    marginLeft: sidebarOpen ? 260 : 72,
-                    padding: 24,
-                    minHeight: '100vh',
-                    transition: 'margin-left 0.3s ease',
-                }}
-                className="ml-0 pt-[72px] lg:ml-auto lg:pt-0"
-            >
+            <main style={{
+                flex: 1,
+                marginLeft: isMobile ? 0 : (sidebarOpen ? 260 : 72),
+                paddingTop: isMobile ? 72 : 24,
+                padding: isMobile ? '72px 16px 24px' : 24,
+                minHeight: '100vh',
+                transition: 'margin-left 0.3s ease',
+            }}>
                 {children}
             </main>
         </div>
