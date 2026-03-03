@@ -4,57 +4,63 @@ const config: Config = {
     darkMode: 'class',
     content: [
         './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/app-pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
         extend: {
             colors: {
-                background: '#03050C', // Very dark blue/black (MetaFin reference)
-                foreground: '#ffffff',
-                card: {
-                    DEFAULT: 'rgba(255, 255, 255, 0.02)',
-                    foreground: '#ffffff',
-                },
+                border: 'hsl(var(--border))',
+                input: 'hsl(var(--input))',
+                ring: 'hsl(var(--ring))',
+                background: 'hsl(var(--background))',
+                foreground: 'hsl(var(--foreground))',
                 primary: {
-                    DEFAULT: '#00F260', // Neon Emerald
-                    foreground: '#000000',
+                    DEFAULT: 'hsl(var(--primary))',
+                    foreground: 'hsl(var(--primary-foreground))',
                 },
                 secondary: {
-                    DEFAULT: 'rgba(255, 255, 255, 0.05)',
-                    foreground: '#a1a1aa',
-                },
-                muted: {
-                    DEFAULT: 'rgba(255, 255, 255, 0.1)',
-                    foreground: '#71717a',
-                },
-                accent: {
-                    DEFAULT: '#F5A623', // Gold/Amber (AurumFinance reference)
-                    foreground: '#000000',
+                    DEFAULT: 'hsl(var(--secondary))',
+                    foreground: 'hsl(var(--secondary-foreground))',
                 },
                 destructive: {
-                    DEFAULT: '#EF4444',
-                    foreground: '#ffffff',
+                    DEFAULT: 'hsl(var(--destructive))',
+                    foreground: 'hsl(var(--destructive-foreground))',
                 },
-                border: 'rgba(255, 255, 255, 0.05)',
-                input: 'rgba(255, 255, 255, 0.05)',
-                ring: '#00F260',
-            },
-            fontFamily: {
-                sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
-                heading: ['Outfit', 'sans-serif'],
-                mono: ['JetBrains Mono', 'monospace'],
+                muted: {
+                    DEFAULT: 'hsl(var(--muted))',
+                    foreground: 'hsl(var(--muted-foreground))',
+                },
+                accent: {
+                    DEFAULT: 'hsl(var(--accent))',
+                    foreground: 'hsl(var(--accent-foreground))',
+                },
+                popover: {
+                    DEFAULT: 'hsl(var(--popover))',
+                    foreground: 'hsl(var(--popover-foreground))',
+                },
+                card: {
+                    DEFAULT: 'hsl(var(--card))',
+                    foreground: 'hsl(var(--card-foreground))',
+                },
+                gold: {
+                    DEFAULT: 'hsl(var(--gold))',
+                    light: 'hsl(var(--gold-light))',
+                    dark: 'hsl(var(--gold-dark))',
+                },
             },
             borderRadius: {
-                lg: '1rem',
-                md: '0.75rem',
-                sm: '0.5rem',
+                lg: 'var(--radius)',
+                md: 'calc(var(--radius) - 2px)',
+                sm: 'calc(var(--radius) - 4px)',
+            },
+            animation: {
+                'pulse-slow': 'gold-pulse 3s ease-in-out infinite',
             },
         },
     },
-    plugins: [
-        require('tailwind-scrollbar'),
-    ],
+    plugins: [require('tailwindcss-animate')],
 }
 
 export default config
