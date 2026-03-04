@@ -246,7 +246,7 @@ export default function BudgetsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingBudget ? 'Editar Orçamento' : 'Novo Orçamento'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Categoria */}
@@ -254,7 +254,7 @@ export default function BudgetsPage() {
                                 <div style={{ marginBottom: 16 }}>
                                     <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Categoria</label>
                                     <div style={{ position: 'relative' }}>
-                                        <select value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={selectStyle}>
+                                        <select aria-label="Selecionar opção" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)} style={selectStyle}>
                                             <option value="">Selecione uma categoria</option>
                                             {availableCategories.map(cat => (
                                                 <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>

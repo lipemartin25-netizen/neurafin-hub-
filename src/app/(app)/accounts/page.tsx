@@ -311,7 +311,7 @@ export default function AccountsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingAcc ? 'Editar Conta' : 'Nova Conta'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Nome */}
@@ -338,7 +338,7 @@ export default function AccountsPage() {
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Tipo de Conta</label>
                                 <div style={{ position: 'relative' }}>
-                                    <select value={accType} onChange={e => setAccType(e.target.value)} style={selectStyle}>
+                                    <select aria-label="Selecionar opção" value={accType} onChange={e => setAccType(e.target.value)} style={selectStyle}>
                                         <option value="checking">🏦 Conta Corrente</option>
                                         <option value="savings">🐷 Poupança</option>
                                         <option value="investment">📈 Investimento</option>

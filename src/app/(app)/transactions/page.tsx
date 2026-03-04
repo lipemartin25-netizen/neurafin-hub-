@@ -366,7 +366,7 @@ export default function TransactionsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingTx ? 'Editar Transação' : 'Nova Transação'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Tipo */}
@@ -394,7 +394,7 @@ export default function TransactionsPage() {
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Conta</label>
                                 <div style={{ position: 'relative' }}>
-                                    <select
+                                    <select aria-label="Selecionar opção"
                                         value={selectedAccountId}
                                         onChange={e => setSelectedAccountId(e.target.value)}
                                         style={selectStyle}
@@ -417,7 +417,7 @@ export default function TransactionsPage() {
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Categoria (opcional)</label>
                                 <div style={{ position: 'relative' }}>
-                                    <select
+                                    <select aria-label="Selecionar opção"
                                         value={selectedCategory}
                                         onChange={e => setSelectedCategory(e.target.value)}
                                         style={selectStyle}
@@ -434,7 +434,7 @@ export default function TransactionsPage() {
                             {/* Data */}
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Data</label>
-                                <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
+                                <input aria-label="Entrada de texto" type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
                             </div>
 
                             {/* Notas */}

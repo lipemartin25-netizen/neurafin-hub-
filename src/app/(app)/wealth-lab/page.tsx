@@ -34,7 +34,7 @@ export default function WealthLabPage() {
             </label>
             <div style={{ position: 'relative' }}>
                 {prefix && <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', fontSize: 14, color: C.textMuted }}>{prefix}</span>}
-                <input type="number" value={value} onChange={(e: any) => onChange(Number(e.target.value))}
+                <input aria-label="Entrada de texto" type="number" value={value} onChange={(e: any) => onChange(Number(e.target.value))}
                     style={{ ...inputStyle, paddingLeft: prefix ? 36 : 16, fontSize: 16, fontWeight: 600 }} />
             </div>
         </div>

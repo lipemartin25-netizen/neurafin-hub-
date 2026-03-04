@@ -381,14 +381,14 @@ export default function InvestmentsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingInv ? 'Editar Investimento' : 'Novo Ativo'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Classe do Ativo */}
                             <div style={{ marginBottom: 16 }}>
                                 <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Classe do Ativo</label>
                                 <div style={{ position: 'relative' }}>
-                                    <select value={invType} onChange={e => setInvType(e.target.value)} style={selectStyle}>
+                                    <select aria-label="Selecionar opção" value={invType} onChange={e => setInvType(e.target.value)} style={selectStyle}>
                                         {Object.entries(TYPE_MAP).map(([key, meta]) => (
                                             <option key={key} value={key}>{meta.icon} {meta.label}</option>
                                         ))}

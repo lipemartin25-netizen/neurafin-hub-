@@ -370,7 +370,7 @@ export default function CardsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingCard ? 'Editar Cartão' : 'Novo Cartão'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Preview do cartão */}

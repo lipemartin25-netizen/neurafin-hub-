@@ -15,7 +15,7 @@ import { useProfile } from '@/hooks/useProfile'
 // ========== Toggle Component ==========
 function Toggle({ on, flip, disabled }: { on: boolean; flip: () => void; disabled?: boolean }) {
     return (
-        <button onClick={flip} disabled={disabled} style={{
+        <button aria-label="Ação" onClick={flip} disabled={disabled} style={{
             width: 44, height: 24, borderRadius: 999, padding: 2, border: 'none',
             cursor: disabled ? 'not-allowed' : 'pointer',
             backgroundColor: on ? C.gold : C.muted, transition: 'all 0.3s',
@@ -270,13 +270,13 @@ export default function SettingsPage() {
                             <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: C.textMuted, marginBottom: 6 }}>
                                 <Calendar size={12} /> Data de Nascimento
                             </label>
-                            <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} style={inputStyle} />
+                            <input aria-label="Entrada de texto" type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} style={inputStyle} />
                         </div>
                         <div>
                             <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: C.textMuted, marginBottom: 6 }}>
                                 <Globe size={12} /> Moeda
                             </label>
-                            <select value={currency} onChange={e => setCurrency(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                            <select aria-label="Selecionar opção" value={currency} onChange={e => setCurrency(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                                 <option value="BRL">R$ — Real Brasileiro</option>
                                 <option value="USD">US$ — Dólar Americano</option>
                                 <option value="EUR">€ — Euro</option>
@@ -296,7 +296,7 @@ export default function SettingsPage() {
                             <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: C.textMuted, marginBottom: 6 }}>
                                 <Target size={12} /> Objetivo Financeiro
                             </label>
-                            <select value={financialGoal} onChange={e => setFinancialGoal(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                            <select aria-label="Selecionar opção" value={financialGoal} onChange={e => setFinancialGoal(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                                 <option value="">Selecione...</option>
                                 <option value="save_more">Economizar mais</option>
                                 <option value="invest">Começar a investir</option>
@@ -316,7 +316,7 @@ export default function SettingsPage() {
                             <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, color: C.textMuted, marginBottom: 6 }}>
                                 <Globe size={12} /> Fuso Horário
                             </label>
-                            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+                            <select aria-label="Selecionar opção" value={timezone} onChange={e => setTimezone(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
                                 <option value="America/Sao_Paulo">Brasília (GMT-3)</option>
                                 <option value="America/Manaus">Manaus (GMT-4)</option>
                                 <option value="America/Belem">Belém (GMT-3)</option>
@@ -454,7 +454,7 @@ export default function SettingsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text, display: 'flex', alignItems: 'center', gap: 8 }}>
                                     <KeyRound size={18} style={{ color: C.gold }} /> Alterar Senha
                                 </h2>
-                                <button onClick={() => setShowPasswordModal(false)} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => setShowPasswordModal(false)} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             <div style={{ marginBottom: 16 }}>

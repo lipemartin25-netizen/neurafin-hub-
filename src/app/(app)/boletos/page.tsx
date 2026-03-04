@@ -351,7 +351,7 @@ export default function BoletosPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingBoleto ? 'Editar Boleto' : 'Novo Boleto'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             {/* Nome */}
@@ -370,12 +370,12 @@ export default function BoletosPage() {
                             <div style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
                                 <div style={{ flex: 1 }}>
                                     <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Vencimento</label>
-                                    <input type="date" value={bDue} onChange={e => setBDue(e.target.value)} style={inputStyle} />
+                                    <input aria-label="Entrada de texto" type="date" value={bDue} onChange={e => setBDue(e.target.value)} style={inputStyle} />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Tipo</label>
                                     <div style={{ position: 'relative' }}>
-                                        <select value={bType} onChange={e => setBType(e.target.value)} style={selectStyle}>
+                                        <select aria-label="Selecionar opção" value={bType} onChange={e => setBType(e.target.value)} style={selectStyle}>
                                             <option value="utility">💡 Energia</option>
                                             <option value="water">💧 Água</option>
                                             <option value="rent">🏢 Aluguel/Condomínio</option>

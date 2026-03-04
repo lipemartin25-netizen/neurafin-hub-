@@ -278,7 +278,7 @@ export default function GoalsPage() {
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>
                                     {editingGoal ? 'Editar Meta' : 'Nova Meta'}
                                 </h2>
-                                <button onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowModal(false); resetForm() }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
 
                             <div style={{ marginBottom: 16 }}>
@@ -296,7 +296,7 @@ export default function GoalsPage() {
                             <div style={{ marginBottom: 16, display: 'flex', gap: 12 }}>
                                 <div style={{ flex: 1 }}>
                                     <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Prazo (opcional)</label>
-                                    <input type="date" value={gDeadline} onChange={e => setGDeadline(e.target.value)} style={inputStyle} />
+                                    <input aria-label="Entrada de texto" type="date" value={gDeadline} onChange={e => setGDeadline(e.target.value)} style={inputStyle} />
                                 </div>
                                 <div style={{ flex: 1 }}>
                                     <label style={{ display: 'block', fontSize: 13, color: C.textMuted, marginBottom: 6 }}>Aporte mensal (R$)</label>
@@ -358,7 +358,7 @@ export default function GoalsPage() {
                             onClick={e => e.stopPropagation()} style={{ ...cardHlStyle, width: '100%', maxWidth: 360, padding: 24 }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                                 <h2 style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Aportar Valor</h2>
-                                <button onClick={() => { setShowFundsModal(null); setFundsAmount('') }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
+                                <button aria-label="Ação" onClick={() => { setShowFundsModal(null); setFundsAmount('') }} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
                             <p style={{ fontSize: 13, color: C.textMuted, marginBottom: 16 }}>Quanto você quer adicionar a essa meta hoje?</p>
 
