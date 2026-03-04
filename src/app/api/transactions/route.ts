@@ -58,6 +58,37 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Campos obrigatórios: account_id, amount, type, description' }, { status: 400 })
         }
 
+        // ===== AUTO-CATEGORIZE VIA REGRAS (antes de inserir) =====
+        let resolvedCategoryId = category_id ?? null
+
+        if (!resolvedCategoryId) {
+            const { data: rules } = await supabase
+                .from('auto_rules')
+                .select('category_id, pattern, match_type, id, times_applied')
+                .eq('user_id', user.id)
+                .eq('is_active', true)
+
+            if (rules && rules.length > 0) {
+                const desc = description.toLowerCase()
+                const matched = rules.find(r => {
+                    const p = (r.pattern as string).toLowerCase()
+                    if (r.match_type === 'contains') return desc.includes(p)
+                    if (r.match_type === 'starts_with') return desc.startsWith(p)
+                    if (r.match_type === 'exact') return desc === p
+                    return desc.includes(p)
+                })
+
+                if (matched && matched.category_id) {
+                    resolvedCategoryId = matched.category_id
+                    // Incrementar times_applied
+                    await supabase.from('auto_rules').update({
+                        times_applied: (matched.times_applied ?? 0) + 1,
+                        updated_at: new Date().toISOString(),
+                    }).eq('id', matched.id).catch(() => { })
+                }
+            }
+        }
+
         const { data, error } = await supabase
             .from('transactions')
             .insert({
@@ -67,10 +98,12 @@ export async function POST(request: Request) {
                 type,
                 description,
                 date: date ?? new Date().toISOString().split('T')[0],
-                category_id: category_id ?? null,
+                category_id: resolvedCategoryId,
                 notes: notes ?? null,
                 is_recurring: is_recurring ?? false,
                 tags: tags ?? null,
+                ai_categorized: resolvedCategoryId && !category_id ? true : false,
+                ai_confidence: resolvedCategoryId && !category_id ? 1.0 : null,
             })
             .select('*, categories(id, name, icon, color), accounts(id, name, type, color)')
             .single()

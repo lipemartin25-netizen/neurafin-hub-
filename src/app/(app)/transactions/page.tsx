@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import {
     ArrowUpRight, ArrowDownRight, Search, Plus, Calendar, Download, X, Sparkles,
-    Trash2, Loader2, ChevronDown, Upload, Repeat, FileText,
+    Trash2, Loader2, ChevronDown, Upload, Repeat, FileText, Share2,
 } from 'lucide-react'
 import { useState, useMemo, useCallback, useRef } from 'react'
 import { C, cardStyle, cardHlStyle, inputStyle, btnGoldStyle, btnOutlineStyle, fmt } from '@/lib/theme'
@@ -11,6 +11,7 @@ import { downloadCSV, downloadPDFReport, formatDateBR, fmtPlain } from '@/lib/ex
 import { toast } from 'sonner'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useAccounts } from '@/hooks/useAccounts'
+import { useFamily } from '@/hooks/useFamily'
 import type { TransactionWithCategory } from '@/types/database'
 import { CATEGORIES } from '@/lib/constants'
 
@@ -33,8 +34,9 @@ function mapToUi(tx: TransactionWithCategory): UiTx {
 }
 
 export default function TransactionsPage() {
-    const { transactions: rawTx, loading, createTransaction, updateTransaction, deleteTransaction, refresh } = useTransactions({ limit: 500 })
+    const { transactions: rawTx, loading, createTransaction, updateTransaction, deleteTransaction, fetchTransactions } = useTransactions({ limit: 500 })
     const { accounts, loading: loadingAccounts } = useAccounts()
+    const { hasFamily, shareTransaction } = useFamily()
 
     const transactions = useMemo(() => rawTx.map(mapToUi), [rawTx])
 
@@ -190,7 +192,8 @@ export default function TransactionsPage() {
                 toast.success(`${json.data.imported} transações importadas!${json.data.errors > 0 ? ` (${json.data.errors} erros)` : ''}`,
                     { style: { background: C.card, color: C.text, border: `1px solid ${C.border}` } })
                 setShowImport(false)
-                refresh()
+                await fetch('/api/transactions/recurring/generate', { method: 'POST' })
+                fetchTransactions()
             }
         } catch {
             toast.error('Erro ao importar arquivo')
@@ -361,13 +364,30 @@ export default function TransactionsPage() {
                                         </p>
                                         <p style={{ fontSize: 11, color: C.textMuted }}>{tx.category}</p>
                                     </div>
-                                    <button aria-label="Ação" onClick={(e) => { e.stopPropagation(); handleDelete(tx.id) }}
-                                        disabled={deleting === tx.id}
-                                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'rgba(248,113,113,0.5)', transition: 'color 0.2s' }}
-                                        onMouseEnter={e => (e.currentTarget.style.color = C.red)}
-                                        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(248,113,113,0.5)')}>
-                                        {deleting === tx.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
-                                    </button>
+                                    <div style={{ display: 'flex', gap: 4 }}>
+                                        {hasFamily && (
+                                            <button aria-label="Compartilhar" onClick={(e) => {
+                                                e.stopPropagation()
+                                                toast.promise(shareTransaction(tx.id), {
+                                                    loading: 'Compartilhando...',
+                                                    success: 'Compartilhado com a família!',
+                                                    error: (err) => err.message,
+                                                })
+                                            }}
+                                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: C.textMuted, transition: 'color 0.2s' }}
+                                                onMouseEnter={e => (e.currentTarget.style.color = C.gold)}
+                                                onMouseLeave={e => (e.currentTarget.style.color = C.textMuted)}>
+                                                <Share2 size={14} />
+                                            </button>
+                                        )}
+                                        <button aria-label="Ação" onClick={(e) => { e.stopPropagation(); handleDelete(tx.id) }}
+                                            disabled={deleting === tx.id}
+                                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 6, borderRadius: 8, color: 'rgba(248,113,113,0.5)', transition: 'color 0.2s' }}
+                                            onMouseEnter={e => (e.currentTarget.style.color = C.red)}
+                                            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(248,113,113,0.5)')}>
+                                            {deleting === tx.id ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Trash2 size={14} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </motion.div>
                         ))}

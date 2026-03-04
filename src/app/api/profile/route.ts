@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+export const dynamic = 'force-dynamic'
 
 // ========== GET — Buscar perfil ==========
 export async function GET() {
@@ -15,10 +16,11 @@ export async function GET() {
             .single()
 
         if (error) throw error
+        const p = data as any
 
         return NextResponse.json({
             data: {
-                ...data,
+                ...p,
                 email: user.email,
                 auth_provider: user.app_metadata?.provider ?? 'email',
                 last_sign_in: user.last_sign_in_at,
@@ -41,7 +43,8 @@ export async function PATCH(request: Request) {
         const allowed = [
             'full_name', 'phone', 'date_of_birth', 'currency', 'locale',
             'timezone', 'monthly_income', 'financial_goal', 'is_mei',
-            'avatar_url',
+            'avatar_url', 'onboarding_completed', 'onboarding_step',
+            'language', 'theme',
         ]
 
         const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }

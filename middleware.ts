@@ -1,8 +1,22 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_ROUTES = new Set(['/', '/login', '/register', '/offline'])
+const PUBLIC_PREFIXES = ['/auth/callback', '/api/stripe/webhook', '/_next/', '/icons/', '/screenshots/']
+const PUBLIC_FILES = new Set(['/sw.js', '/manifest.json', '/favicon.ico'])
+
 export async function middleware(request: NextRequest) {
-    let supabaseResponse = NextResponse.next({ request })
+    const { pathname } = request.nextUrl
+
+    // Assets estáticos e rotas públicas — skip
+    if (PUBLIC_ROUTES.has(pathname)) return NextResponse.next()
+    if (PUBLIC_FILES.has(pathname)) return NextResponse.next()
+    if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return NextResponse.next()
+
+    // Ignorar assets estáticos com extensão que não sejam da API
+    if (pathname.includes('.') && !pathname.startsWith('/api/')) return NextResponse.next()
+
+    let response = NextResponse.next({ request: { headers: request.headers } })
 
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,60 +27,37 @@ export async function middleware(request: NextRequest) {
                     return request.cookies.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value }) =>
-                        request.cookies.set(name, value)
-                    )
-                    supabaseResponse = NextResponse.next({ request })
+                    cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+                    response = NextResponse.next({ request: { headers: request.headers } })
                     cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
+                        response.cookies.set(name, value, options)
                     )
                 },
             },
         }
     )
 
-    // Refresh session if expired
     const { data: { user } } = await supabase.auth.getUser()
 
-    const isAuthRoute = request.nextUrl.pathname.startsWith('/login') ||
-        request.nextUrl.pathname.startsWith('/register') ||
-        request.nextUrl.pathname.startsWith('/auth')
-
-    const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') ||
-        request.nextUrl.pathname.startsWith('/transactions') ||
-        request.nextUrl.pathname.startsWith('/accounts') ||
-        request.nextUrl.pathname.startsWith('/budgets') ||
-        request.nextUrl.pathname.startsWith('/goals') ||
-        request.nextUrl.pathname.startsWith('/ai') ||
-        request.nextUrl.pathname.startsWith('/boletos') ||
-        request.nextUrl.pathname.startsWith('/wealth-lab') ||
-        request.nextUrl.pathname.startsWith('/open-finance') ||
-        request.nextUrl.pathname.startsWith('/academy') ||
-        request.nextUrl.pathname.startsWith('/settings')
-
-    if (!user && isProtectedRoute) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/login'
-        return NextResponse.redirect(url)
+    if (!user) {
+        // API routes → 401
+        if (pathname.startsWith('/api/')) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        // Pages → redirect to login
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirect', pathname)
+        return NextResponse.redirect(loginUrl)
     }
 
-    if (user && isAuthRoute) {
-        const url = request.nextUrl.clone()
-        url.pathname = '/dashboard'
-        return NextResponse.redirect(url)
-    }
+    // Security headers
+    response.headers.set('X-Frame-Options', 'DENY')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
 
-    if (request.nextUrl.pathname === '/') {
-        const url = request.nextUrl.clone()
-        url.pathname = user ? '/dashboard' : '/login'
-        return NextResponse.redirect(url)
-    }
-
-    return supabaseResponse
+    return response
 }
 
 export const config = {
-    matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-    ],
+    matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

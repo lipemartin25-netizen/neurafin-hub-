@@ -11,6 +11,8 @@ import { C, cardStyle, cardHlStyle, btnGoldStyle, btnOutlineStyle, fmt } from '@
 import GoldText from '@/components/GoldText'
 import { useDashboard } from '@/hooks/useDashboard'
 import { CATEGORIES } from '@/lib/constants'
+import DashboardCharts from '@/components/DashboardCharts'
+import OnboardingGuard from '@/components/OnboardingGuard'
 
 // Lookup rápido de categorias
 const CAT_MAP = Object.fromEntries(CATEGORIES.map(c => [c.id, c]))
@@ -28,7 +30,7 @@ function formatRelativeDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [showValues, setShowValues] = useState(true)
   const router = useRouter()
   const { data, loading } = useDashboard()
@@ -128,8 +130,12 @@ export default function DashboardPage() {
             )
           })}
         </div>
-      )
-      }
+      )}
+
+      {/* ========== Analytics Charts (NEW) ========== */}
+      <div style={{ marginBottom: 24 }}>
+        <DashboardCharts />
+      </div>
 
       {/* Main grid: left + right */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 24 }}
@@ -333,5 +339,13 @@ export default function DashboardPage() {
 
       <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div >
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <OnboardingGuard>
+      <DashboardContent />
+    </OnboardingGuard>
   )
 }

@@ -230,3 +230,49 @@
         animation: gold-pulse 3s ease-in-out infinite;
     }
 }
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+html.light,
+html.light body {
+    background-color: #f5f3ee !important;
+    color: #1a1a1a !important;
+    color-scheme: light !important;
+}
+
+html.light input,
+html.light textarea,
+html.light select {
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+    color: #9ca3af !important;
+}
+
+html.light input:focus,
+html.light textarea:focus,
+html.light select:focus {
+    border-color: rgba(154, 125, 58, 0.4) !important;
+}
+
+html.light ::selection {
+    background: rgba(154, 125, 58, 0.2) !important;
+    color: #1a1a1a !important;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+    background: #d4d0c8 !important;
+}
+
+html.light .text-gradient-gold {
+    background: linear-gradient(135deg, #9a7d3a, #6b5425, #8a7030) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+html.light * {
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}

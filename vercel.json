@@ -1,7 +1,70 @@
 {
     "framework": "nextjs",
-    "buildCommand": "npm run build",
-    "outputDirectory": ".next",
-    "devCommand": "npm run dev",
-    "installCommand": "npm install"
+    "regions": [
+        "gru1"
+    ],
+    "headers": [
+        {
+            "source": "/sw.js",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=0, must-revalidate"
+                },
+                {
+                    "key": "Service-Worker-Allowed",
+                    "value": "/"
+                }
+            ]
+        },
+        {
+            "source": "/manifest.json",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=86400"
+                }
+            ]
+        },
+        {
+            "source": "/api/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "no-store, max-age=0"
+                }
+            ]
+        },
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "X-Frame-Options",
+                    "value": "DENY"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "Referrer-Policy",
+                    "value": "strict-origin-when-cross-origin"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "camera=(), microphone=(), geolocation=(self)"
+                }
+            ]
+        }
+    ],
+    "crons": [
+        {
+            "path": "/api/transactions/recurring/generate",
+            "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/notifications/generate",
+            "schedule": "0 8 * * *"
+        }
+    ]
 }

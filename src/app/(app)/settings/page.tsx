@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { C, cardStyle, cardHlStyle, btnGoldStyle, btnOutlineStyle, inputStyle, fmt } from '@/lib/theme'
 import { toast } from 'sonner'
 import { useProfile } from '@/hooks/useProfile'
+import PlanCard from '@/components/PlanCard'
 
 // ========== Toggle Component ==========
 function Toggle({ on, flip, disabled }: { on: boolean; flip: () => void; disabled?: boolean }) {
@@ -344,6 +345,20 @@ export default function SettingsPage() {
                         {saving ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={16} />}
                         {saving ? 'Salvando...' : 'Salvar Perfil'}
                     </button>
+                </motion.div>
+
+                {/* ========== PLANOS DE ASSINATURA ========== */}
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+                    style={{ ...cardStyle, padding: 24 }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, color: C.text, marginBottom: 20 }}>
+                        <Crown size={18} style={{ color: C.gold }} /> Plano & Assinatura
+                    </h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+                        <PlanCard planId="pro" />
+                        <PlanCard planId="family" />
+                        <PlanCard planId="mei" />
+                    </div>
                 </motion.div>
 
                 {/* ========== NOTIFICAÇÕES ========== */}
