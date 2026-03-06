@@ -11,11 +11,21 @@ export async function GET(request: NextRequest) {
         if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         const action = request.nextUrl.searchParams.get('action')
         if (action === 'connect_token') {
-            if (!process.env.PLUGGY_CLIENT_ID) {
-                return NextResponse.json({ error: 'Pluggy não configurado', demo: true }, { status: 200 })
+            const clientId = (process.env.PLUGGY_CLIENT_ID || '').trim()
+            if (!clientId || clientId === 'your_client_id' || clientId.includes('xxx')) {
+                return NextResponse.json({ error: 'Pluggy Credentials Missing', demo: true }, { status: 200 })
             }
-            const token = await createConnectToken(user.id)
-            return NextResponse.json({ connectToken: token })
+            try {
+                const token = await createConnectToken(user.id)
+                return NextResponse.json({ connectToken: token })
+            } catch (pluggyErr: any) {
+                console.error('[Pluggy API Error]:', pluggyErr)
+                // Se o Pluggy retornar 400, é porque as chaves são inválidas no portal deles
+                return NextResponse.json({
+                    error: `Pluggy Error: ${pluggyErr.message || 'Invalid Credentials'}`,
+                    details: pluggyErr.response?.data || 'Check Pluggy Dashboard'
+                }, { status: 400 })
+            }
         }
         // Listar conexões
         const { data: connections } = await supabase

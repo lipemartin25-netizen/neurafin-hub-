@@ -4,9 +4,16 @@ let client: PluggyClient | null = null
 
 export function getPluggyClient(): PluggyClient {
     if (!client) {
+        const clientId = (process.env.PLUGGY_CLIENT_ID || '').trim()
+        const clientSecret = (process.env.PLUGGY_CLIENT_SECRET || '').trim()
+
+        if (!clientId || !clientSecret) {
+            throw new Error('Pluggy credentials missing or empty')
+        }
+
         client = new PluggyClient({
-            clientId: process.env.PLUGGY_CLIENT_ID!,
-            clientSecret: process.env.PLUGGY_CLIENT_SECRET!,
+            clientId,
+            clientSecret,
         })
     }
     return client
