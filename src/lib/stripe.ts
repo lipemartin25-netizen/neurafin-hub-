@@ -8,7 +8,7 @@ export const PLANS = {
     pro: {
         name: 'Pro',
         priceId: process.env.STRIPE_PRICE_PRO || '',
-        price: 29.90,
+        price: 19.90,
         features: [
             '100 mensagens IA/dia',
             'Contas ilimitadas',
@@ -22,7 +22,7 @@ export const PLANS = {
     family: {
         name: 'Family',
         priceId: process.env.STRIPE_PRICE_FAMILY || '',
-        price: 49.90,
+        price: 39.90,
         features: [
             'Tudo do Pro',
             '200 mensagens IA/dia',
@@ -33,9 +33,9 @@ export const PLANS = {
         ],
     },
     mei: {
-        name: 'MEI',
+        name: 'Plano Gratuito',
         priceId: process.env.STRIPE_PRICE_MEI || '',
-        price: 19.90,
+        price: 0.00,
         features: [
             '50 mensagens IA/dia',
             '10 contas',

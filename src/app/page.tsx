@@ -262,16 +262,16 @@ function Features() {
    ============================================================ */
 const PLANS = [
     {
-        name: 'Starter', desc: 'Para começar a organizar suas finanças', price: 'R$ 0,00', period: '/mês', hl: false, cta: 'Começar grátis',
-        features: ['1 conta bancária', 'Dashboard básico', 'Relatórios mensais', 'Suporte por email']
+        name: 'Plano Gratuito', desc: 'Para começar a organizar suas finanças', price: 'R$ 0,00', period: '/mês', hl: false, cta: 'Começar grátis',
+        features: ['50 mensagens IA/dia', '10 contas bancárias', 'Dashboard básico', 'Relatórios mensais']
     },
     {
         name: 'Pro', desc: 'Para quem leva finanças a sério', price: 'R$ 19,90', period: '/mês', hl: true, cta: 'Assinar Pro',
-        features: ['Contas ilimitadas', 'IA preditiva', 'Relatórios em tempo real', 'API access', 'Suporte prioritário']
+        features: ['100 mensagens IA/dia', 'Contas ilimitadas', 'IA Vision (OCR)', 'Relatórios avançados', 'Wealth Lab']
     },
     {
-        name: 'Enterprise', desc: 'Para empresas e gestoras', price: 'Custom', period: '', hl: false, cta: 'Falar com vendas',
-        features: ['Tudo do Pro', 'Multi-usuários', 'SSO & SAML', 'SLA dedicado', 'Gerente de conta', 'On-premise option']
+        name: 'Family', desc: 'Para gerir as finanças da casa', price: 'R$ 39,90', period: '/mês', hl: false, cta: 'Assinar Family',
+        features: ['200 mensagens IA/dia', 'Até 5 membros', 'Dashboard familiar', 'Metas compartilhadas', 'Suporte prioritário']
     },
 ]
 
