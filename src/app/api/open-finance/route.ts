@@ -16,9 +16,10 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: 'Pluggy Credentials Missing', demo: true }, { status: 200 })
             }
             try {
-                // Removemos o user.id daqui pois o Pluggy espera um itemId (UUID de conexão) no primeiro parâmetro
-                const token = await createConnectToken()
-                return NextResponse.json({ connectToken: token })
+                const response = await createConnectToken()
+                // O Pluggy SDK retorna um objeto { accessToken: string }. 
+                // Precisamos enviar apenas a string para o widget não quebrar.
+                return NextResponse.json({ connectToken: response.accessToken })
             } catch (pluggyErr: any) {
                 console.error('[Pluggy API Error]:', pluggyErr)
                 // Se o Pluggy retornar 400, é porque as chaves são inválidas no portal deles
