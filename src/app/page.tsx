@@ -262,11 +262,11 @@ function Features() {
    ============================================================ */
 const PLANS = [
     {
-        name: 'Starter', desc: 'Para começar a organizar suas finanças', price: 'Grátis', period: '', hl: false, cta: 'Começar grátis',
+        name: 'Starter', desc: 'Para começar a organizar suas finanças', price: 'R$ 0,00', period: '/mês', hl: false, cta: 'Começar grátis',
         features: ['1 conta bancária', 'Dashboard básico', 'Relatórios mensais', 'Suporte por email']
     },
     {
-        name: 'Pro', desc: 'Para quem leva finanças a sério', price: 'R$ 49', period: '/mês', hl: true, cta: 'Assinar Pro',
+        name: 'Pro', desc: 'Para quem leva finanças a sério', price: 'R$ 19,90', period: '/mês', hl: true, cta: 'Assinar Pro',
         features: ['Contas ilimitadas', 'IA preditiva', 'Relatórios em tempo real', 'API access', 'Suporte prioritário']
     },
     {
@@ -385,18 +385,54 @@ function CTA() {
    ============================================================ */
 function Footer() {
     return (
-        <footer style={{ borderTop: `1px solid rgba(255,255,255,0.03)`, padding: '32px 0' }}>
-            <div style={{ maxWidth: 1152, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '0 24px' }}>
-                <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: C.goldGrad }} />
-                    <span style={{ fontSize: 14, fontWeight: 700, color: C.text }}>Neural Finance <GoldText>Hub</GoldText></span>
-                </a>
-                <div style={{ display: 'flex', gap: 24, fontSize: 14, color: C.textMuted }}>
-                    <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Termos</a>
-                    <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacidade</a>
-                    <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Contato</a>
+        <footer style={{ borderTop: `1px solid ${C.border}`, padding: '64px 0 32px' }}>
+            <div style={{ maxWidth: 1152, margin: '0 auto', padding: '0 24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 48, marginBottom: 48 }}>
+                    <div>
+                        <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', marginBottom: 16 }}>
+                            <div style={{ width: 28, height: 28, borderRadius: 8, background: C.goldGrad }} />
+                            <span style={{ fontSize: 18, fontWeight: 700, color: C.text }}>Neural Finance <GoldText>Hub</GoldText></span>
+                        </a>
+                        <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.6 }}>
+                            O Neural Finance Hub é a evolução definitiva da gestão financeira financeira na nuvem. 
+                            Utilizamos inteligência artificial preditiva e integração Open Finance para 
+                            centralizar sua vida, categorizar automaticamente e acelerar sua liberdade financeira.
+                        </p>
+                    </div>
+                    <div>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 20 }}>Funções do Sistema</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <button style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', padding: 0 }}>
+                                <span style={{ fontSize: 14, color: C.gold, fontWeight: 500 }}>Gestão por IA</span>
+                                <span style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Análises inteligentes e chatbot (Gemini)</span>
+                            </button>
+                            <button style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', padding: 0, marginTop: 8 }}>
+                                <span style={{ fontSize: 14, color: C.gold, fontWeight: 500 }}>Open Finance</span>
+                                <span style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Sincronização automática com Pluggy</span>
+                            </button>
+                            <button style={{ background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', padding: 0, marginTop: 8 }}>
+                                <span style={{ fontSize: 14, color: C.gold, fontWeight: 500 }}>Evolução Patrimonial</span>
+                                <span style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Dashboards de investimentos e metas</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 20 }}>Plataforma</h4>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: C.textMuted }}>
+                            <a href="#solucoes" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}>Soluções</a>
+                            <a href="#planos" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}>Planos e Preços</a>
+                            <a href="/login" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}>Entrar na Conta</a>
+                        </div>
+                    </div>
                 </div>
-                <p style={{ fontSize: 12, color: C.textMuted }}>© 2026 Neural Finance Hub. Todos os direitos reservados.</p>
+                
+                <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 32, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+                    <p style={{ fontSize: 13, color: C.textMuted }}>© 2026 Neural Finance Hub. Todos os direitos reservados.</p>
+                    <div style={{ display: 'flex', gap: 24, fontSize: 13, color: C.textMuted }}>
+                        <a href="#" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}>Termos de Uso</a>
+                        <a href="#" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }}>Privacidade</a>
+                    </div>
+                </div>
             </div>
         </footer>
     )
