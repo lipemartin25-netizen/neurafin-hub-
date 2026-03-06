@@ -1,7 +1,8 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, Plus, Eye, EyeOff, ArrowUpRight, ArrowDownRight, DollarSign, Percent, X, Trash2, Loader2, ChevronDown } from 'lucide-react'
+import { TrendingUp, Plus, Eye, EyeOff, ArrowUpRight, ArrowDownRight, DollarSign, Percent, X, Trash2, Loader2, ChevronDown, Wifi } from 'lucide-react'
+import { PluggyConnectButton } from '@/components/pluggy/PluggyConnectButton'
 import { useState, useMemo, useCallback } from 'react'
 import { C, cardStyle, cardHlStyle, inputStyle, btnGoldStyle, btnOutlineStyle, fmt, fmtPct } from '@/lib/theme'
 import { toast } from 'sonner'
@@ -212,7 +213,8 @@ export default function InvestmentsPage() {
                         {loading ? 'Carregando...' : `${investments.length} ativos · Acompanhe sua carteira`}
                     </p>
                 </div>
-                <div style={{ display: 'flex', gap: 12 }}>
+                <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <PluggyConnectButton label="Conectar Corretora" onSuccess={() => window.location.reload()} />
                     <button onClick={() => setShowValues(!showValues)} style={btnOutlineStyle}>
                         {showValues ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
