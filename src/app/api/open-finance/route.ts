@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: 'Pluggy Credentials Missing', demo: true }, { status: 200 })
             }
             try {
-                const token = await createConnectToken(user.id)
+                // Removemos o user.id daqui pois o Pluggy espera um itemId (UUID de conexão) no primeiro parâmetro
+                const token = await createConnectToken()
                 return NextResponse.json({ connectToken: token })
             } catch (pluggyErr: any) {
                 console.error('[Pluggy API Error]:', pluggyErr)
