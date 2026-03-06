@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, User, Eye, EyeOff, ArrowRight, Check } from 'lucide-react'
+import { Loader2, Mail, Lock, User, Eye, EyeOff, ArrowRight, Check, Github, Chrome } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { toast } from 'sonner'
 const C = {
@@ -57,6 +57,19 @@ export default function RegisterPage() {
             toast.success('Conta criada!')
         }
     }
+    const handleOAuth = async (provider: 'google' | 'github') => {
+        setLoading(true)
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        })
+        if (error) {
+            toast.error('Erro ao iniciar autenticação social')
+            setLoading(false)
+        }
+    }
     const inputStyle: React.CSSProperties = {
         width: '100%', padding: '12px 14px 12px 42px', borderRadius: 10, fontSize: 14,
         backgroundColor: C.secondary, border: `1px solid ${C.border}`, color: C.text,
@@ -108,6 +121,28 @@ export default function RegisterPage() {
                         Comece a usar o <GoldText>Neural Finance Hub</GoldText>
                     </p>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginBottom: 24 }}>
+                    <button type="button" onClick={() => handleOAuth('google')} disabled={loading}
+                        style={{ ...inputStyle, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+                        <Chrome size={16} /> <span style={{ fontSize: 13, fontWeight: 500 }}>Google</span>
+                    </button>
+                    <button type="button" onClick={() => handleOAuth('github')} disabled={loading}
+                        style={{ ...inputStyle, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+                        <Github size={16} /> <span style={{ fontSize: 13, fontWeight: 500 }}>GitHub</span>
+                    </button>
+                </div>
+                <div style={{ position: 'relative', marginBottom: 24 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+                        <div style={{ width: '100%', borderTop: `1px solid ${C.border}` }} />
+                    </div>
+                    <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                        <span style={{ backgroundColor: 'transparent', padding: '0 12px', fontSize: 11, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+                            ou cadastre-se com e-mail
+                        </span>
+                    </div>
+                </div>
+
                 <form onSubmit={handleRegister}>
                     <div style={{ marginBottom: 14, position: 'relative' }}>
                         <User size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.textMuted, zIndex: 1 }} />

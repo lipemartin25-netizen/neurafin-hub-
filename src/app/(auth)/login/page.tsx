@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight, Github, Chrome } from 'lucide-react'
 import { createBrowserClient } from '@supabase/ssr'
 import { toast } from 'sonner'
 const C = {
@@ -57,7 +57,21 @@ export default function LoginPage() {
         })
         setLoading(false)
         if (error) toast.error(error.message)
+        if (error) toast.error(error.message)
         else { setResetSent(true); toast.success('Email de recuperação enviado!') }
+    }
+    const handleOAuth = async (provider: 'google' | 'github') => {
+        setLoading(true)
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        })
+        if (error) {
+            toast.error('Erro ao iniciar autenticação social')
+            setLoading(false)
+        }
     }
     const inputStyle: React.CSSProperties = {
         width: '100%', padding: '12px 14px 12px 42px', borderRadius: 10, fontSize: 14,
@@ -100,36 +114,58 @@ export default function LoginPage() {
                     </p>
                 </div>
                 {mode === 'login' ? (
-                    <form onSubmit={handleLogin}>
-                        <div style={{ marginBottom: 16, position: 'relative' }}>
-                            <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.textMuted, zIndex: 1 }} />
-                            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                                placeholder="seu@email.com" style={inputStyle} autoComplete="email"
-                                onFocus={e => e.target.style.borderColor = 'rgba(201,168,88,0.3)'}
-                                onBlur={e => e.target.style.borderColor = C.border} />
-                        </div>
-                        <div style={{ marginBottom: 8, position: 'relative' }}>
-                            <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.textMuted, zIndex: 1 }} />
-                            <input type={showPassword ? 'text' : 'password'} value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="Sua senha" style={{ ...inputStyle, paddingRight: 42 }} autoComplete="current-password"
-                                onFocus={e => e.target.style.borderColor = 'rgba(201,168,88,0.3)'}
-                                onBlur={e => e.target.style.borderColor = C.border} />
-                            <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}>
-                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    <div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginBottom: 24 }}>
+                            <button type="button" onClick={() => handleOAuth('google')} disabled={loading}
+                                style={{ ...inputStyle, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+                                <Chrome size={16} /> <span style={{ fontSize: 13, fontWeight: 500 }}>Google</span>
+                            </button>
+                            <button type="button" onClick={() => handleOAuth('github')} disabled={loading}
+                                style={{ ...inputStyle, padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, cursor: 'pointer' }}>
+                                <Github size={16} /> <span style={{ fontSize: 13, fontWeight: 500 }}>GitHub</span>
                             </button>
                         </div>
-                        <div style={{ textAlign: 'right', marginBottom: 24 }}>
-                            <button type="button" onClick={() => setMode('forgot')}
-                                style={{ background: 'none', border: 'none', color: C.gold, fontSize: 12, cursor: 'pointer' }}>
-                                Esqueci minha senha
-                            </button>
+                        <div style={{ position: 'relative', marginBottom: 24 }}>
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center' }}>
+                                <div style={{ width: '100%', borderTop: `1px solid ${C.border}` }} />
+                            </div>
+                            <div style={{ position: 'relative', display: 'flex', justifyContent: 'center' }}>
+                                <span style={{ backgroundColor: 'transparent', padding: '0 12px', fontSize: 11, color: C.textMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+                                    ou continue com e-mail
+                                </span>
+                            </div>
                         </div>
-                        <button type="submit" disabled={loading} style={btnStyle}>
-                            {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <>Entrar <ArrowRight size={16} /></>}
-                        </button>
-                    </form>
+                        <form onSubmit={handleLogin}>
+                            <div style={{ marginBottom: 16, position: 'relative' }}>
+                                <Mail size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.textMuted, zIndex: 1 }} />
+                                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                                    placeholder="seu@email.com" style={inputStyle} autoComplete="email"
+                                    onFocus={e => e.target.style.borderColor = 'rgba(201,168,88,0.3)'}
+                                    onBlur={e => e.target.style.borderColor = C.border} />
+                            </div>
+                            <div style={{ marginBottom: 8, position: 'relative' }}>
+                                <Lock size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: C.textMuted, zIndex: 1 }} />
+                                <input type={showPassword ? 'text' : 'password'} value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                    placeholder="Sua senha" style={{ ...inputStyle, paddingRight: 42 }} autoComplete="current-password"
+                                    onFocus={e => e.target.style.borderColor = 'rgba(201,168,88,0.3)'}
+                                    onBlur={e => e.target.style.borderColor = C.border} />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                    style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer' }}>
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
+                            <div style={{ textAlign: 'right', marginBottom: 24 }}>
+                                <button type="button" onClick={() => setMode('forgot')}
+                                    style={{ background: 'none', border: 'none', color: C.gold, fontSize: 12, cursor: 'pointer' }}>
+                                    Esqueci minha senha
+                                </button>
+                            </div>
+                            <button type="submit" disabled={loading} style={btnStyle}>
+                                {loading ? <Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> : <>Entrar <ArrowRight size={16} /></>}
+                            </button>
+                        </form>
+                    </div>
                 ) : (
                     <form onSubmit={handleForgotPassword}>
                         {resetSent ? (
