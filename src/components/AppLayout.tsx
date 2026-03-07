@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { getThemeColors } from '@/lib/themeColors'
 import GoldText from './GoldText'
+import NeonBackground from './NeonBackground'
 import NotificationCenter from './NotificationCenter'
 // PWA install popup removido
 import { useApp } from '@/contexts/AppContext'
@@ -229,16 +230,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
 
             {/* Main Content */}
-            <main style={{
-                flex: 1,
-                marginLeft: isMobile ? 0 : (sidebarOpen ? 260 : 72),
-                paddingTop: isMobile ? 72 : 24,
-                padding: isMobile ? '72px 16px 24px' : 24,
-                minHeight: '100vh', transition: 'margin-left 0.3s ease',
-            }}>
-                {children}
-            </main>
-
+            <div style={{ flex: 1, position: 'relative', minHeight: '100vh', backgroundColor: TC.bg }}>
+                {theme !== 'light' && <NeonBackground />}
+                <main style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    marginLeft: 0,
+                    paddingTop: isMobile ? 72 : 24,
+                    padding: isMobile ? '72px 16px 24px' : 24,
+                    minHeight: '100vh', transition: 'margin-left 0.3s ease',
+                }}>
+                    {children}
+                </main>
+            </div>
         </div>
     )
 }

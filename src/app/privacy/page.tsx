@@ -29,10 +29,13 @@ const liStyle: React.CSSProperties = {
     paddingLeft: 8,
 }
 
+import NeonBackground from '@/components/NeonBackground'
+
 export default function PrivacyPolicyPage() {
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text }}>
-            <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px 80px' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text, position: 'relative', overflow: 'hidden' }}>
+            <NeonBackground />
+            <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px 80px', position: 'relative', zIndex: 1 }}>
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/" style={{
