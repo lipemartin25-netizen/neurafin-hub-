@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createConnectToken, fetchAccounts, fetchTransactions, mapPluggyCategory } from '@/lib/pluggy'
+import { createConnectToken, fetchAccounts, fetchTransactions, fetchItem, mapPluggyCategory } from '@/lib/pluggy'
 
 export const dynamic = 'force-dynamic'
 // GET — listar conexões + criar connect token
@@ -67,7 +67,26 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: 'Pluggy não configurado' }, { status: 400 })
             }
 
-            // 1. Buscar categorias do banco para mapeamento UUID
+            console.log(`[Pluggy Sync] Iniciando sync para itemId: ${itemId}`)
+
+            // 1. Aguardar item estar pronto (Pluggy pode demorar alguns segundos na primeira conexão)
+            let itemReady = false
+            let attempts = 0
+            while (!itemReady && attempts < 5) {
+                const item = await fetchItem(itemId)
+                console.log(`[Pluggy Sync] Status do item: ${item.status} (tentativa ${attempts + 1})`)
+                const status = (item.status as any)
+                if (status === 'UPDATED' || status === 'PARTIAL_SUCCESS') {
+                    itemReady = true
+                } else if (status === 'LOGIN_ERROR' || status === 'OUTDATED') {
+                    return NextResponse.json({ error: `Conexão com erro: ${item.status}` }, { status: 400 })
+                } else {
+                    attempts++
+                    await new Promise(resolve => setTimeout(resolve, 3000))
+                }
+            }
+
+            // 2. Buscar categorias do banco para mapeamento UUID
             const { data: dbCategories } = await supabase
                 .from('categories')
                 .select('id, name')
@@ -75,13 +94,30 @@ export async function POST(request: NextRequest) {
             const categoryMap: Record<string, string> = {}
             if (dbCategories) {
                 dbCategories.forEach(c => {
-                    // Mapeia o nome minúsculo para o ID (ex: "Alimentação" -> UUID)
                     categoryMap[c.name.toLowerCase()] = c.id
                 })
             }
 
+            // Bridge de tradução: slug interno do helper -> nome no banco
+            const slugToName: Record<string, string> = {
+                'food': 'alimentação',
+                'transport': 'transporte',
+                'housing': 'moradia',
+                'health': 'saúde',
+                'education': 'educação',
+                'entertainment': 'lazer',
+                'shopping': 'compras',
+                'subscriptions': 'assinaturas',
+                'utilities': 'moradia', // Fallback se não tiver 'Contas'
+                'pets': 'pets',
+                'personal': 'beleza',
+                'salary': 'salário',
+                'investments_return': 'investimentos'
+            }
+
             // Buscar contas do Pluggy
             const { results: pluggyAccounts } = await fetchAccounts(itemId)
+            console.log(`[Pluggy Sync] Contas encontradas: ${pluggyAccounts.length}`)
             let totalImported = 0
 
             for (const pa of pluggyAccounts) {
@@ -126,16 +162,17 @@ export async function POST(request: NextRequest) {
 
                 if (!accountId) continue
 
-                // IMPORTAR TRANSAÇÕES (Últimos 90 dias conforme solicitado)
+                // IMPORTAR TRANSAÇÕES (Últimos 90 dias)
                 const to = new Date().toISOString().split('T')[0]
                 const from = new Date(Date.now() - 90 * 86400000).toISOString().split('T')[0]
 
-                // Fetch paginado
                 let page = 1
                 let hasMore = true
 
                 while (hasMore) {
-                    const { results: pluggyTxs } = await fetchTransactions(pa.id, { from, to, page })
+                    const response = await fetchTransactions(pa.id, { from, to, page })
+                    const pluggyTxs = response.results
+                    console.log(`[Pluggy Sync] Importando página ${page} da conta ${pa.id}: ${pluggyTxs.length} transações`)
 
                     for (const pt of pluggyTxs) {
                         // Evitar duplicatas
@@ -147,24 +184,20 @@ export async function POST(request: NextRequest) {
                             .maybeSingle()
 
                         if (!existingTx) {
-                            // Tenta mapear categoria: slug -> ID interno -> UUID do banco
-                            const internalSlug = mapPluggyCategory(pt.category)
-
-                            // Tenta achar no mapa de nomes ou no mapa de slugs
-                            // Como não temos os ids literais 'food' no banco (provavelmente),
-                            // usamos o nome da categoria que o Pluggy mandou e tentamos achar na tabela
+                            // Mapeamento de categoria inteligente
                             let finalCategoryId = null
                             if (pt.category) {
-                                // 1. Tenta pelo nome exato (Alimentação)
+                                // 1. Tenta pelo nome exato vindo do Pluggy
                                 finalCategoryId = categoryMap[pt.category.toLowerCase()]
-                            }
 
-                            // 2. Fallback pro mapeamento de slug se não achou pelo nome original
-                            if (!finalCategoryId) {
-                                // Aqui precisariamos que as categorias tivessem um campo 'slug'
-                                // ou que o nome batesse com o slug fixo.
-                                // Como não sabemos, usamos o que temos.
-                                // Se não achou, deixa nulo ou tenta uma padrão.
+                                // 2. Tenta pelo bridge de tradução
+                                if (!finalCategoryId) {
+                                    const internalSlug = mapPluggyCategory(pt.category)
+                                    const dbName = slugToName[internalSlug]
+                                    if (dbName) {
+                                        finalCategoryId = categoryMap[dbName]
+                                    }
+                                }
                             }
 
                             // data format
@@ -176,30 +209,39 @@ export async function POST(request: NextRequest) {
                                 txDateStr = rawDate.split('T')[0]
                             }
 
+                            const amount = Math.abs(pt.amount)
+                            const type = pt.amount >= 0 ? 'income' : 'expense'
+
                             await supabase.from('transactions').insert({
                                 user_id: user.id,
                                 account_id: accountId,
-                                amount: Math.abs(pt.amount),
-                                type: pt.amount >= 0 ? 'income' : 'expense',
+                                amount,
+                                type,
                                 description: pt.description || pt.descriptionRaw || 'Transação importada',
                                 date: txDateStr,
                                 open_finance_id: pt.id,
                                 category_id: finalCategoryId,
-                                notes: pt.category ? `Vencimento/Categoria: ${pt.category}` : null
+                                notes: pt.category ? `Categoria original: ${pt.category}` : null
                             } as any)
                             totalImported++
                         }
                     }
 
-                    hasMore = false // Pagar por página se totalPages > page em loop real
+                    // Verifica se há mais páginas
+                    if (response.totalPages > page && page < 5) { // Limite de 5 páginas para evitar timeout
+                        page++
+                    } else {
+                        hasMore = false
+                    }
                 }
             }
-            // Atualizar last_sync
+            // Atualizar last_sync na tabela de controle
             await supabase.from('open_finance_connections').update({
                 last_sync_at: new Date().toISOString(),
                 status: 'active',
             }).eq('user_id', user.id).eq('item_id', itemId)
 
+            console.log(`[Pluggy Sync] Sincronização finalizada. Total importado: ${totalImported}`)
             return NextResponse.json({ success: true, imported: totalImported })
         }
         return NextResponse.json({ error: 'Ação inválida' }, { status: 400 })
