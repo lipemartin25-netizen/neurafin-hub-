@@ -29,7 +29,6 @@ const MENU_KEYS = [
     { key: 'nav.budgets', icon: DollarSign, href: '/budgets' },
     { key: 'nav.goals', icon: Target, href: '/goals' },
     { key: 'nav.emergency_fund', icon: Shield, href: '/emergency-fund' },
-    { key: 'nav.subscriptions', icon: Repeat, href: '/subscriptions' },
     { key: 'nav.family', icon: Users, href: '/family' },
     { key: 'nav.achievements', icon: Trophy, href: '/achievements' },
     { key: 'nav.debt_planner', icon: TrendingDown, href: '/debt-planner' },

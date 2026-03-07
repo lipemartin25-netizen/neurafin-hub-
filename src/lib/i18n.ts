@@ -19,7 +19,6 @@ const translations: Record<string, Record<Locale, string>> = {
     'nav.budgets': { 'pt-BR': 'Orçamentos', en: 'Budgets', es: 'Presupuestos' },
     'nav.goals': { 'pt-BR': 'Metas', en: 'Goals', es: 'Metas' },
     'nav.emergency_fund': { 'pt-BR': 'Reserva de Emergência', en: 'Emergency Fund', es: 'Fondo de Emergencia' },
-    'nav.subscriptions': { 'pt-BR': 'Assinaturas', en: 'Subscriptions', es: 'Suscripciones' },
     'nav.family': { 'pt-BR': 'Família', en: 'Family', es: 'Familia' },
     'nav.debt_planner': { 'pt-BR': 'Plano de Dívidas', en: 'Debt Planner', es: 'Plan de Deudas' },
     'nav.reports': { 'pt-BR': 'Relatórios', en: 'Reports', es: 'Reportes' },

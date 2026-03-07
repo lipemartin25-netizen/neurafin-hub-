@@ -92,7 +92,7 @@ export default function TermsPage() {
                         <li style={liStyle}>Conexão com bancos via Open Finance (Pluggy)</li>
                         <li style={liStyle}>Acompanhamento patrimonial, metas financeiras e reserva de emergência</li>
                         <li style={liStyle}>Relatórios, simulações e projeções financeiras</li>
-                        <li style={liStyle}>Gestão de boletos, assinaturas e planejamento de dívidas</li>
+                        <li style={liStyle}>Gestão de boletos e planejamento de dívidas</li>
                     </ul>
                     <p style={{ ...pStyle, marginTop: 12, fontWeight: 500, color: C.text }}>
                         ⚠️ A Neural Finance Hub NÃO é uma instituição financeira, corretora de valores ou consultoria
@@ -110,7 +110,7 @@ export default function TermsPage() {
                     </ul>
                     <p style={pStyle}>
                         Os pagamentos são processados de forma segura via <strong style={{ color: C.text }}>Stripe</strong>.
-                        Você pode cancelar sua assinatura a qualquer momento, mantendo o acesso até o final do período pago.
+                        Você pode cancelar seu plano a qualquer momento, mantendo o acesso até o final do período pago.
                     </p>
                 </motion.div>
 
