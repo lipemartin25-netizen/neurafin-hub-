@@ -439,19 +439,96 @@ function Footer() {
 }
 
 /* ============================================================
+   NEON BACKGROUND EFFECT
+   ============================================================ */
+function NeonBackground() {
+    return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+            {/* Top Right Glow */}
+            <motion.div
+                animate={{
+                    x: [0, 40, 0],
+                    y: [0, -30, 0],
+                    scale: [1, 1.1, 1],
+                    opacity: [0.15, 0.25, 0.15]
+                }}
+                transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
+                style={{
+                    position: 'absolute', top: '-10%', right: '-5%',
+                    width: '60vw', height: '60vw', borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(201,168,88,0.2) 0%, transparent 70%)',
+                    filter: 'blur(80px)',
+                }}
+            />
+
+            {/* Middle Left Glow */}
+            <motion.div
+                animate={{
+                    x: [0, -50, 0],
+                    y: [0, 60, 0],
+                    scale: [1, 1.2, 1],
+                    opacity: [0.1, 0.2, 0.1]
+                }}
+                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                style={{
+                    position: 'absolute', top: '30%', left: '-10%',
+                    width: '50vw', height: '50vw', borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(201,168,88,0.15) 0%, transparent 70%)',
+                    filter: 'blur(100px)',
+                }}
+            />
+
+            {/* Bottom Right Glow */}
+            <motion.div
+                animate={{
+                    x: [0, 30, 0],
+                    y: [0, 40, 0],
+                    scale: [1, 1.15, 1],
+                    opacity: [0.12, 0.22, 0.12]
+                }}
+                transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+                style={{
+                    position: 'absolute', bottom: '-20%', right: '10%',
+                    width: '70vw', height: '70vw', borderRadius: '50%',
+                    background: 'radial-gradient(circle, rgba(201,168,88,0.18) 0%, transparent 70%)',
+                    filter: 'blur(120px)',
+                }}
+            />
+
+            {/* Central Soft Smoke */}
+            <motion.div
+                animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [0.05, 0.1, 0.05]
+                }}
+                transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
+                style={{
+                    position: 'absolute', top: '20%', left: '20%', right: '20%', bottom: '20%',
+                    background: 'radial-gradient(circle, rgba(201,168,88,0.08) 0%, transparent 80%)',
+                    filter: 'blur(150px)',
+                }}
+            />
+        </div>
+    )
+}
+
+/* ============================================================
    LANDING PAGE
    ============================================================ */
 export default function HomePage() {
     return (
-        <main style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text }}>
-            <Navbar />
-            <Hero />
-            <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
-            <Features />
-            <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
-            <Pricing />
-            <CTA />
-            <Footer />
+        <main style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text, position: 'relative' }}>
+            <NeonBackground />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+                <Navbar />
+                <Hero />
+                <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
+                <Features />
+                <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
+                <Pricing />
+                <CTA />
+                <Footer />
+            </div>
         </main>
     )
 }
