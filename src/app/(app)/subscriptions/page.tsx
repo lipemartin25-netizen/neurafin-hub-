@@ -5,6 +5,8 @@ import { CreditCard, AlertCircle, CheckCircle2, Loader2, RefreshCw, TrendingDown
 import { useState, useEffect, useCallback } from 'react'
 import { C, cardStyle, cardHlStyle, btnOutlineStyle, fmt } from '@/lib/theme'
 import GoldText from '@/components/GoldText'
+import { useApp } from '@/contexts/AppContext'
+import { getThemeColors } from '@/lib/themeColors'
 
 type Subscription = {
     description: string; averageAmount: number; frequency: string
@@ -22,6 +24,8 @@ const FREQ_LABEL: Record<string, string> = {
 }
 
 export default function SubscriptionsPage() {
+    const { theme } = useApp()
+    const TC = getThemeColors(theme)
     const [data, setData] = useState<SubData | null>(null)
     const [loading, setLoading] = useState(true)
 
@@ -40,19 +44,19 @@ export default function SubscriptionsPage() {
 
     if (loading) return (
         <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text }}>Assinaturas</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: TC.text }}>Assinaturas</h1>
             <div style={{ ...cardStyle, padding: 80, display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-                <Loader2 size={32} style={{ color: C.gold, animation: 'spin 1s linear infinite' }} />
+                <Loader2 size={32} style={{ color: TC.gold, animation: 'spin 1s linear infinite' }} />
             </div>
             <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     )
 
-    if (!data) return (
+    if (!data || !data.subscriptions) return (
         <div>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text }}>Assinaturas</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: TC.text }}>Assinaturas</h1>
             <div style={{ ...cardStyle, padding: 40, textAlign: 'center', marginTop: 24 }}>
-                <p style={{ color: C.textMuted }}>Erro ao detectar assinaturas.</p>
+                <p style={{ color: TC.textMuted }}>Erro ao detectar assinaturas.</p>
                 <button onClick={fetch_} style={{ ...btnOutlineStyle, marginTop: 16 }}>Tentar novamente</button>
             </div>
         </div>
@@ -64,12 +68,12 @@ export default function SubscriptionsPage() {
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text }}>Assinaturas</h1>
-                    <p style={{ fontSize: 14, color: C.textMuted, marginTop: 4 }}>
+                    <h1 style={{ fontSize: 24, fontWeight: 700, color: TC.text }}>Assinaturas</h1>
+                    <p style={{ fontSize: 14, color: TC.textMuted, marginTop: 4 }}>
                         Detectadas automaticamente com base nas suas transações
                     </p>
                 </motion.div>
-                <button onClick={fetch_} style={btnOutlineStyle}>
+                <button onClick={fetch_} style={{ ...btnOutlineStyle }}>
                     <RefreshCw size={16} /> Atualizar
                 </button>
             </div>
@@ -78,18 +82,18 @@ export default function SubscriptionsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     style={{ ...cardHlStyle, padding: 24, textAlign: 'center' }}>
-                    <p style={{ fontSize: 13, color: C.textMuted }}>Gasto Mensal</p>
+                    <p style={{ fontSize: 13, color: TC.textMuted }}>Gasto Mensal</p>
                     <p style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}><GoldText>{fmt(totalMonthly)}</GoldText></p>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
                     style={{ ...cardStyle, padding: 24, textAlign: 'center' }}>
-                    <p style={{ fontSize: 13, color: C.textMuted }}>Gasto Anual</p>
-                    <p style={{ fontSize: 28, fontWeight: 700, color: C.red, marginTop: 4 }}>{fmt(totalYearly)}</p>
+                    <p style={{ fontSize: 13, color: TC.textMuted }}>Gasto Anual</p>
+                    <p style={{ fontSize: 28, fontWeight: 700, color: TC.red, marginTop: 4 }}>{fmt(totalYearly)}</p>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                     style={{ ...cardStyle, padding: 24, textAlign: 'center' }}>
-                    <p style={{ fontSize: 13, color: C.textMuted }}>Assinaturas Ativas</p>
-                    <p style={{ fontSize: 28, fontWeight: 700, color: C.emerald, marginTop: 4 }}>{activeCount}</p>
+                    <p style={{ fontSize: 13, color: TC.textMuted }}>Assinaturas Ativas</p>
+                    <p style={{ fontSize: 28, fontWeight: 700, color: TC.emerald, marginTop: 4 }}>{activeCount}</p>
                 </motion.div>
             </div>
 
