@@ -100,12 +100,7 @@ export default function LoginPage() {
                 }}>
                 {/* Logo */}
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                    <div style={{
-                        width: 48, height: 48, borderRadius: 12, background: C.goldGrad,
-                        margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                        <span style={{ fontSize: 22, color: C.bg, fontWeight: 800 }}>N</span>
-                    </div>
+                    <img src="/logo-neura.png" alt="Logo" style={{ width: 48, height: 48, borderRadius: 12, margin: '0 auto 16px', display: 'block', objectFit: 'contain' }} />
                     <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text }}>
                         {mode === 'login' ? 'Entrar' : 'Recuperar Senha'}
                     </h1>

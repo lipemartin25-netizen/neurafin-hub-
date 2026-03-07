@@ -116,9 +116,7 @@ export default function RegisterPage() {
                     background: 'linear-gradient(165deg, #13161c, #0d0f14)', border: `1px solid ${C.borderGold}`,
                 }}>
                 <div style={{ textAlign: 'center', marginBottom: 28 }}>
-                    <div style={{ width: 48, height: 48, borderRadius: 12, background: C.goldGrad, margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 22, color: C.bg, fontWeight: 800 }}>N</span>
-                    </div>
+                    <img src="/logo-neura.png" alt="Logo" style={{ width: 48, height: 48, borderRadius: 12, margin: '0 auto 16px', display: 'block', objectFit: 'contain' }} />
                     <h1 style={{ fontSize: 22, fontWeight: 700, color: C.text }}>Criar Conta</h1>
                     <p style={{ fontSize: 13, color: C.textMuted, marginTop: 6 }}>
                         Comece a usar o <GoldText>Neural Finance Hub</GoldText>

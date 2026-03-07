@@ -74,7 +74,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     borderBottom: `1px solid ${TC.border}`,
                 }}>
                     <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 8, background: TC.goldGrad, flexShrink: 0 }} />
+                        <img src="/logo-neura.png" alt="Logo" style={{ width: 32, height: 32, borderRadius: 8, flexShrink: 0, objectFit: 'contain' }} />
                         {showLabel && (
                             <span style={{ fontSize: 16, fontWeight: 700, color: TC.text, whiteSpace: 'nowrap' }}>
                                 Neural Finance <GoldText>Hub</GoldText>
