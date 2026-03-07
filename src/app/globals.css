@@ -136,53 +136,71 @@
         background-size: 50px 50px;
     }
 
-    /* ===== 3D CARD (MetaFin effect + Neural Finance Hub palette) ===== */
+    /* ===== 3D CARD (Intense Gold Neon effect) ===== */
     .card-3d {
         position: relative;
-        border: 1px solid var(--c-border-gold);
-        background: var(--c-card-grad);
-        border-radius: 1rem;
+        border: 1px solid rgba(201, 168, 88, 0.12);
+        background: linear-gradient(165deg, #13161c, #090a0d);
+        border-radius: 1.25rem;
         box-shadow:
-            0 1px 0 0 var(--c-border-gold),
-            inset 0 1px 0 0 var(--c-border-gold),
-            0 8px 30px -10px hsl(0 0% 0% / 0.5);
-        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            0 10px 40px -15px rgba(0, 0, 0, 0.8),
+            0 0 20px -10px rgba(201, 168, 88, 0.1);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         overflow: hidden;
+    }
+
+    .card-3d::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, transparent, rgba(201, 168, 88, 0.03), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.8s ease;
     }
 
     .card-3d:hover {
-        border-color: hsl(40 65% 55% / 0.15);
-        transform: translateY(-4px);
+        border-color: rgba(201, 168, 88, 0.4);
+        transform: translateY(-8px) scale(1.01);
         box-shadow:
-            0 1px 0 0 hsl(40 65% 55% / 0.08),
-            inset 0 1px 0 0 hsl(40 65% 55% / 0.05),
-            0 20px 50px -15px hsl(0 0% 0% / 0.6),
-            0 0 40px -10px hsl(40 65% 55% / 0.08);
+            0 20px 60px -20px rgba(0, 0, 0, 0.9),
+            0 0 40px -10px rgba(201, 168, 88, 0.25);
     }
 
-    /* ===== HIGHLIGHT CARD ===== */
+    .card-3d:hover::before {
+        transform: translateX(100%);
+    }
+
+    /* ===== HIGHLIGHT CARD (Maximum Neon) ===== */
     .card-3d-highlight {
         position: relative;
-        border: 1px solid var(--c-border-gold);
-        background: var(--c-card-hl-grad);
-        border-radius: 1rem;
+        border: 1px solid rgba(223, 192, 122, 0.3);
+        background: linear-gradient(165deg, #181b22, #0b0d10);
+        border-radius: 1.25rem;
         box-shadow:
-            0 1px 0 0 var(--c-border-gold),
-            inset 0 1px 0 0 var(--c-border-gold),
-            0 12px 40px -10px hsl(0 0% 0% / 0.6),
-            0 0 50px -15px hsl(40 65% 55% / 0.1);
-        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            0 15px 50px -10px rgba(0, 0, 0, 0.8),
+            0 0 30px -10px rgba(201, 168, 88, 0.2);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
         overflow: hidden;
     }
 
+    .card-3d-highlight::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(201, 168, 88, 0.08) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
     .card-3d-highlight:hover {
-        border-color: hsl(40 65% 55% / 0.3);
-        transform: translateY(-6px);
+        border-color: rgba(223, 192, 122, 0.8);
+        transform: translateY(-10px) scale(1.02);
         box-shadow:
-            0 1px 0 0 hsl(40 65% 55% / 0.12),
-            inset 0 1px 0 0 hsl(40 65% 55% / 0.08),
-            0 25px 60px -15px hsl(0 0% 0% / 0.7),
-            0 0 60px -15px hsl(40 65% 55% / 0.15);
+            0 25px 70px -15px rgba(0, 0, 0, 1),
+            0 0 60px -10px rgba(201, 168, 88, 0.5),
+            inset 0 0 20px rgba(201, 168, 88, 0.1);
     }
 
     /* ===== SIDEBAR ACTIVE ===== */
