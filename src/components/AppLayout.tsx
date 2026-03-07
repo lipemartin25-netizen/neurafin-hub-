@@ -230,18 +230,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
 
             {/* Main Content */}
+            {theme !== 'light' && <NeonBackground />}
             <main style={{
                 flex: 1,
                 marginLeft: isMobile ? 0 : (sidebarOpen ? 260 : 72),
                 paddingTop: isMobile ? 72 : 24,
                 padding: isMobile ? '72px 16px 24px' : 24,
                 minHeight: '100vh', transition: 'margin-left 0.3s ease',
-                position: 'relative',
             }}>
-                {theme !== 'light' && <NeonBackground />}
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    {children}
-                </div>
+                {children}
             </main>
         </div>
     )

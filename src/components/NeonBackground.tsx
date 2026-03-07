@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 
 export default function NeonBackground() {
     return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none', backgroundColor: '#050608' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: -1, overflow: 'hidden', pointerEvents: 'none', backgroundColor: '#050608' }}>
             {/* Primary Glowing Mesh */}
             <motion.div
                 animate={{

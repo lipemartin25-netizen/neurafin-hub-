@@ -448,18 +448,16 @@ import NeonBackground from '@/components/NeonBackground'
    ============================================================ */
 export default function HomePage() {
     return (
-        <main style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text, position: 'relative' }}>
+        <main style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text }}>
             <NeonBackground />
-            <div style={{ position: 'relative', zIndex: 1 }}>
-                <Navbar />
-                <Hero />
-                <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
-                <Features />
-                <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
-                <Pricing />
-                <CTA />
-                <Footer />
-            </div>
+            <Navbar />
+            <Hero />
+            <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
+            <Features />
+            <div className="divider-gold" style={{ maxWidth: 896, margin: '0 auto' }} />
+            <Pricing />
+            <CTA />
+            <Footer />
         </main>
     )
 }

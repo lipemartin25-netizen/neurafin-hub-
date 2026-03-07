@@ -33,9 +33,9 @@ import NeonBackground from '@/components/NeonBackground'
 
 export default function TermsPage() {
     return (
-        <div style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text, position: 'relative', overflow: 'hidden' }}>
+        <div style={{ minHeight: '100vh', backgroundColor: C.bg, color: C.text }}>
             <NeonBackground />
-            <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px 80px', position: 'relative', zIndex: 1 }}>
+            <div style={{ maxWidth: 800, margin: '0 auto', padding: '40px 20px 80px' }}>
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
                     <Link href="/" style={{
